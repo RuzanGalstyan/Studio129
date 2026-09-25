@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Studio 129</title>
+<meta name="description" content="Gamified practice for reading ISO 129-1 (dimensions and tolerances) in English.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+:root{
+  --paper:#E9EEEA; --sheet:#FBFCFA; --ink:#17211C; --muted:#56675D; --line:#C5D0C8; --grid:rgba(40,96,70,.09);
+  --accent:#2A6548; --accent-soft:#DCE9E1; --accent-ink:#FFFFFF;
+  --mark:#C4501F; --mark-ink:#FFFFFF; --xp:#B87D0E;
+  --ok:#2A7A4B; --ok-soft:#DDF0E3; --bad:#B23F2B; --bad-soft:#F7E1DC;
+  --shadow:0 1px 0 rgba(23,33,28,.06), 0 8px 24px -14px rgba(23,33,28,.35);
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#0F1512; --sheet:#171F1B; --ink:#E2E9E4; --muted:#95A69B; --line:#2C3932; --grid:rgba(116,193,154,.06);
+    --accent:#74C19A; --accent-soft:#1E3228; --accent-ink:#0C1410;
+    --mark:#F07A4C; --mark-ink:#1A0D07; --xp:#E5B24C;
+    --ok:#74C19A; --ok-soft:#1B3025; --bad:#F07360; --bad-soft:#3A1E19;
+    --shadow:0 1px 0 rgba(0,0,0,.3), 0 10px 26px -14px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#0F1512; --sheet:#171F1B; --ink:#E2E9E4; --muted:#95A69B; --line:#2C3932; --grid:rgba(116,193,154,.06);
+  --accent:#74C19A; --accent-soft:#1E3228; --accent-ink:#0C1410;
+  --mark:#F07A4C; --mark-ink:#1A0D07; --xp:#E5B24C;
+  --ok:#74C19A; --ok-soft:#1B3025; --bad:#F07360; --bad-soft:#3A1E19;
+  --shadow:0 1px 0 rgba(0,0,0,.3), 0 10px 26px -14px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background-color:var(--paper); color:var(--ink); font:16px/1.55 var(--body);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:24px 24px;
+}
+a{color:var(--accent)}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--mark);outline-offset:2px}
+h1,h2,h3{font-family:var(--display);font-weight:700;line-height:1.05;text-wrap:balance;margin:0;letter-spacing:.01em}
+h1{font-size:clamp(2.2rem,6vw,3.4rem);text-transform:uppercase}
+h2{font-size:1.9rem;text-transform:uppercase}
+h3{font-size:1.3rem}
+p{margin:0}
+.wrap{max-width:980px;margin:0 auto;padding-inline:16px}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--mono)}
+.muted{color:var(--muted)}
+
+/* ---------- top bar ---------- */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--sheet);border-bottom:1.5px solid var(--ink)}
+.bar .wrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-block:10px}
+@media (max-width:700px){.bar{position:static}.nav a{font-size:.95rem;padding:3px 6px}}
+.brand{display:flex;align-items:baseline;gap:8px;text-decoration:none;color:var(--ink);margin-right:auto}
+.brand b{font-family:var(--display);font-size:1.6rem;text-transform:uppercase;letter-spacing:.02em}
+.brand span{font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+.nav{display:flex;gap:4px;flex-wrap:wrap}
+.nav a{font-family:var(--display);font-weight:600;font-size:1.05rem;text-transform:uppercase;letter-spacing:.04em;text-decoration:none;color:var(--muted);padding:4px 8px;border-radius:3px}
+.nav a:hover{color:var(--ink)}
+.nav a[aria-current="page"]{color:var(--accent-ink);background:var(--accent)}
+.rank{display:flex;align-items:center;gap:10px;min-width:180px}
+.rank .lbl{font-family:var(--display);font-weight:700;text-transform:uppercase;font-size:1rem;white-space:nowrap}
+.meter{flex:1;height:8px;background:var(--line);border-radius:4px;overflow:hidden;min-width:70px}
+.meter i{display:block;height:100%;background:var(--xp);transition:width .6s ease}
+.xp{font-family:var(--mono);font-size:.75rem;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+
+main{padding-block:28px 64px}
+.stack{display:flex;flex-direction:column;gap:28px}
+
+/* ---------- drawing sheet ---------- */
+.sheet{background:var(--sheet);border:1.5px solid var(--ink);box-shadow:var(--shadow);position:relative}
+.sheet-in{padding:22px;display:flex;flex-direction:column;gap:18px}
+.tblock{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1.5px solid var(--ink);font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.06em}
+.tblock div{padding:6px 10px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:2px;min-width:0}
+.tblock div:last-child{border-right:0}
+.tblock small{color:var(--muted);font-size:.6rem}
+.tblock b{font-weight:500;color:var(--ink);overflow-wrap:anywhere}
+@media (max-width:560px){.tblock{grid-template-columns:repeat(2,minmax(0,1fr))}.tblock div:nth-child(2){border-right:0}.tblock div:nth-child(-n+2){border-bottom:1px solid var(--line)}}
+
+/* ---------- home ---------- */
+.hero{display:grid;grid-template-columns:1.4fr 1fr;gap:24px;align-items:end}
+.hero p{max-width:60ch;font-size:1.08rem}
+.hero .lead{display:flex;flex-direction:column;gap:14px}
+.memo{border-left:3px solid var(--mark);padding:10px 14px;background:var(--paper);font-size:.98rem}
+.memo .eyebrow{color:var(--mark)}
+@media (max-width:720px){.hero{grid-template-columns:1fr}}
+.ranks{display:flex;flex-direction:column;gap:6px;font-family:var(--mono);font-size:.78rem}
+.ranks div{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.ranks .on{color:var(--accent);font-weight:600}
+.level{display:flex;flex-direction:column;gap:12px}
+.level-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:1.5px solid var(--ink);padding-bottom:6px}
+.level-head h2{font-size:1.5rem}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:640px){.cards{grid-template-columns:1fr}}
+.mcard{display:flex;flex-direction:column;background:var(--sheet);border:1.5px solid var(--ink);text-decoration:none;color:var(--ink);position:relative;overflow:hidden;transition:transform .15s ease, box-shadow .15s ease}
+.mcard:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.mcard .body{padding:16px 18px;display:flex;flex-direction:column;gap:6px;flex:1}
+.mcard h3{font-size:1.45rem;text-transform:uppercase}
+.mcard p{color:var(--muted);font-size:.95rem}
+.mcard.locked{opacity:.55;pointer-events:none;border-style:dashed}
+.mcard .tblock{grid-template-columns:repeat(3,minmax(0,1fr))}
+.mcard .tblock div:nth-child(2){border-right:1px solid var(--line)}
+.mcard .tblock div{border-bottom:0!important}
+.mini-stamp{position:absolute;top:14px;right:-4px;transform:rotate(8deg);font-family:var(--display);font-weight:700;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border:2px solid currentColor}
+.mini-stamp.ok{color:var(--ok)} .mini-stamp.bad{color:var(--bad)} .mini-stamp.new{color:var(--mark)} .mini-stamp.lock{color:var(--muted)}
+
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.badge{display:flex;gap:10px;align-items:center;padding:10px;border:1.5px dashed var(--line);background:var(--sheet);font-size:.85rem;line-height:1.25}
+.badge svg{flex:none;width:34px;height:34px}
+.badge b{display:block;font-family:var(--display);font-size:1.02rem;text-transform:uppercase;letter-spacing:.02em}
+.badge.got{border:1.5px solid var(--xp)}
+.badge:not(.got) svg{opacity:.35}
+.badge .hex{fill:var(--paper);stroke:var(--muted);stroke-width:2}
+.badge.got .hex{fill:var(--xp);stroke:var(--xp)}
+.badge .gl{fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.badge.got .gl{stroke:var(--sheet)}
+.badge small{color:var(--muted)}
+
+/* ---------- mission ---------- */
+.mhead{display:flex;flex-direction:column;gap:10px}
+.back{font-family:var(--mono);font-size:.78rem;text-decoration:none;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--mono);font-size:.74rem;border:1px solid var(--line);background:var(--paper);padding:3px 8px;border-radius:999px;cursor:pointer;text-decoration:none;color:var(--ink)}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.drawing{background:var(--sheet);border:1px solid var(--line);overflow-x:auto}
+.drawing svg{display:block;width:100%;height:auto;max-width:100%}
+.dw .ol{fill:none;stroke:var(--ink);stroke-width:2.2;stroke-linejoin:round}
+.dw .th{fill:none;stroke:var(--ink);stroke-width:1}
+.dw .cl{fill:none;stroke:var(--ink);stroke-width:.9;stroke-dasharray:14 3 2 3}
+.dw .ar{fill:var(--ink);stroke:none}
+.dw .bg{fill:var(--sheet);stroke:var(--ink);stroke-width:1}
+.dw .tx{fill:var(--ink);font-family:var(--display);font-weight:500;font-size:15px}
+.dw .mk circle{fill:var(--mark);transition:r .15s}
+.dw .mk text{fill:var(--mark-ink);font:700 11px var(--mono);text-anchor:middle}
+.dw .mk.hot circle{r:12}
+.dw .hit{fill:var(--ok);fill-opacity:.18;stroke:var(--ok);stroke-width:2}
+.dw .miss{stroke:var(--bad);stroke-width:2.5;stroke-linecap:round}
+.dw .reveal{fill:none;stroke:var(--bad);stroke-width:2;stroke-dasharray:4 3}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border:1.5px solid var(--ink);background:var(--sheet);cursor:pointer;font-family:var(--display);font-weight:700;font-size:1.1rem;text-transform:uppercase;letter-spacing:.05em;text-decoration:none;color:var(--ink);border-radius:2px}
+.btn:hover{background:var(--paper)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+.labels{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px}
+@media (max-width:640px){.labels{grid-template-columns:1fr}}
+.labels li{display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:center}
+.labels .num{width:26px;height:26px;border-radius:50%;background:var(--mark);color:var(--mark-ink);font:700 .75rem/26px var(--mono);text-align:center}
+.labels select{width:100%;padding:8px;border:1.5px solid var(--line);background:var(--sheet);border-radius:2px}
+.labels .fb{grid-column:2;font-size:.85rem}
+.labels li.ok select{border-color:var(--ok);background:var(--ok-soft)}
+.labels li.bad select{border-color:var(--bad);background:var(--bad-soft)}
+.ok-t{color:var(--ok)} .bad-t{color:var(--bad)}
+
+.match{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:12px}
+.match .col{display:flex;flex-direction:column;gap:8px}
+.tile{display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 12px;border:1.5px solid var(--line);background:var(--sheet);cursor:pointer;text-align:left;border-radius:2px;font-size:.95rem;line-height:1.2}
+.tile:hover{border-color:var(--ink)}
+.tile.sel{border-color:var(--mark);box-shadow:inset 0 0 0 1.5px var(--mark)}
+.tile.done{border-color:var(--ok);background:var(--ok-soft);cursor:default;opacity:.75}
+.tile.shake{animation:shake .35s}
+.tile .sym{width:34px;height:34px}
+.sym{fill:none;stroke:currentColor;stroke-width:1.8;overflow:visible;vertical-align:middle}
+.sym text{fill:currentColor;stroke:none;font:600 15px var(--display)}
+.sym .f{fill:currentColor;stroke:none}
+.inline-sym .sym{width:1.3em;height:1.3em;vertical-align:-.25em}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.timer{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.85rem;color:var(--muted)}
+
+.q{display:flex;flex-direction:column;gap:16px}
+.qcount{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.sentence{font-size:1.3rem;line-height:1.45;max-width:60ch}
+.sentence .gap{display:inline-block;min-width:4.2em;border-bottom:2px solid var(--mark);text-align:center;font-family:var(--mono);font-weight:600;color:var(--mark)}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.opts.col1{grid-template-columns:1fr}
+.opt{padding:12px 14px;border:1.5px solid var(--line);background:var(--sheet);cursor:pointer;text-align:left;border-radius:2px;font-size:1rem}
+.opt.big{font-family:var(--mono);font-size:1.15rem;text-align:center;font-weight:600}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt.ok{border-color:var(--ok);background:var(--ok-soft)}
+.opt.bad{border-color:var(--bad);background:var(--bad-soft)}
+.opt:disabled{cursor:default}
+.feedback{padding:12px 14px;border-left:3px solid var(--accent);background:var(--paper);font-size:.98rem}
+.feedback.bad{border-color:var(--bad)}
+.notation{font-family:var(--mono);font-size:2.4rem;font-weight:500;padding:18px;text-align:center;background:var(--paper);border:1px solid var(--line)}
+.notation .sym{width:1em;height:1em;vertical-align:-.12em}
+.ted{border:1.5px solid currentColor;padding:0 .2em}
+.progress{height:4px;background:var(--line)}
+.progress i{display:block;height:100%;background:var(--accent);transition:width .3s}
+
+.rules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 18px;margin:0;padding:0;list-style:none;font-size:.95rem}
+@media (max-width:640px){.rules{grid-template-columns:1fr}}
+.rules b{font-family:var(--mono);color:var(--mark);margin-right:6px}
+.minis{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.mini{border:1.5px solid var(--line);background:var(--sheet);display:flex;flex-direction:column}
+.mini .drawing{border:0;border-bottom:1px solid var(--line)}
+.mini .foot{padding:8px;display:flex;gap:8px;align-items:center}
+.mini select{flex:1;padding:6px;border:1.5px solid var(--line);background:var(--sheet)}
+.mini.ok{border-color:var(--ok)} .mini.bad{border-color:var(--bad)}
+.mini .fb{padding:0 8px 8px;font-size:.82rem}
+
+.why{border:1.5px solid var(--mark);padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--sheet)}
+.tally{display:flex;gap:18px;font-family:var(--mono);font-size:.85rem;flex-wrap:wrap}
+.found-list{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:.95rem}
+
+/* ---------- result stamp ---------- */
+.result{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center;padding:20px;border:1.5px solid var(--ink);background:var(--sheet)}
+@media (max-width:560px){.result{grid-template-columns:1fr}}
+.stamp{font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:1.25rem;line-height:1.05;border:3px solid currentColor;padding:10px 16px;text-align:center;transform:rotate(-6deg);animation:stamp .45s cubic-bezier(.2,1.6,.4,1) both;max-width:230px}
+.stamp small{display:block;font-size:.72rem;letter-spacing:.14em;font-family:var(--mono);font-weight:500}
+.stamp.ok{color:var(--ok)} .stamp.bad{color:var(--bad)}
+@keyframes stamp{from{transform:rotate(-6deg) scale(1.8);opacity:0}to{transform:rotate(-6deg) scale(1);opacity:1}}
+.result .score{font-family:var(--display);font-size:2.4rem;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.result .newb{color:var(--xp);font-weight:600}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- glossary ---------- */
+.gtools{display:flex;flex-direction:column;gap:10px}
+.search{width:100%;padding:12px 14px;border:1.5px solid var(--ink);background:var(--sheet);font-size:1.05rem;border-radius:2px}
+.gcount{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+.gcat{display:flex;flex-direction:column;gap:10px}
+.gcat h2{font-size:1.35rem;border-bottom:1.5px solid var(--ink);padding-bottom:4px}
+.gitems{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:680px){.gitems{grid-template-columns:1fr}}
+.term{background:var(--sheet);border:1px solid var(--line);padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.term header{display:flex;align-items:flex-start;gap:10px}
+.term h3{font-size:1.35rem;flex:1}
+.term .es{font-style:italic;color:var(--accent);font-weight:600}
+.term .ex{font-size:.92rem;color:var(--muted);border-left:2px solid var(--line);padding-left:10px}
+.term .cl{font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+.term .sym{width:30px;height:30px;color:var(--ink)}
+.speak{border:1px solid var(--line);background:var(--paper);width:32px;height:32px;border-radius:50%;cursor:pointer;display:grid;place-items:center;flex:none}
+.speak:hover{border-color:var(--accent)}
+.speak svg{width:16px;height:16px;fill:none;stroke:var(--ink);stroke-width:1.8}
+mark{background:color-mix(in srgb,var(--xp) 35%,transparent);color:inherit}
+
+/* ---------- prose pages ---------- */
+.prose{display:flex;flex-direction:column;gap:14px;max-width:70ch}
+.prose ul,.prose ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+.tbl{overflow-x:auto}
+.tbl table{border-collapse:collapse;width:100%;min-width:480px;font-size:.95rem;background:var(--sheet)}
+.tbl th,.tbl td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+.tbl th{font-family:var(--display);text-transform:uppercase;letter-spacing:.04em;font-size:1rem;background:var(--paper)}
+.phrase{font-family:var(--mono);font-size:.9rem;background:var(--paper);padding:10px 12px;border-left:3px solid var(--accent)}
+.check{display:flex;flex-direction:column;gap:8px;list-style:none;padding:0;margin:0}
+.check label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.check input{margin-top:5px;accent-color:var(--accent)}
+
+/* ---------- escape ---------- */
+.locks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:640px){.locks{grid-template-columns:1fr}}
+.lock{border:1.5px solid var(--ink);background:var(--sheet);padding:14px;display:flex;flex-direction:column;gap:10px}
+.lock.open{border-color:var(--ok);background:var(--ok-soft)}
+.lock .row{display:flex;gap:8px;align-items:center}
+.lock input{width:64px;padding:8px;font-family:var(--mono);font-size:1.4rem;text-align:center;border:1.5px solid var(--ink);background:var(--sheet)}
+.dial{display:flex;gap:8px;justify-content:center}
+.dial span{width:52px;height:64px;border:2px solid var(--ink);display:grid;place-items:center;font:600 2rem var(--mono);background:var(--sheet)}
+.dial span.on{border-color:var(--ok);color:var(--ok)}
+
+/* ---------- certificate ---------- */
+.cert{background:var(--sheet);border:1.5px solid var(--ink);outline:1px solid var(--ink);outline-offset:-8px;padding:28px}
+.cert .inner{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.cert .name{font-family:var(--display);font-size:clamp(2rem,7vw,3.2rem);font-weight:700;text-transform:uppercase;line-height:1;border-bottom:1.5px solid var(--ink);padding-bottom:6px;min-width:60%}
+.code{font-family:var(--mono);font-size:1.3rem;letter-spacing:.12em;padding:6px 12px;border:1.5px dashed var(--ink)}
+.field{display:flex;flex-direction:column;gap:6px;max-width:420px}
+.field input{padding:10px 12px;border:1.5px solid var(--ink);background:var(--sheet);border-radius:2px}
+.foot{font-size:.82rem;color:var(--muted);border-top:1px solid var(--line);padding-top:16px;display:flex;flex-direction:column;gap:6px}
+.linkbtn{background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:.82rem}
+</style>
+</head>
+<body>
+<header class="bar"><div class="wrap">
+  <a class="brand" href="#home"><b>Studio 129</b><span>ISO 129-1</span></a>
+  <nav class="nav" aria-label="Main">
+    <a href="#home" data-r="home">Sheets</a><a href="#briefing" data-r="briefing">Briefing</a><a href="#glossary" data-r="glossary">Glossary</a><a href="#final" data-r="final">Final task</a><a href="#cert" data-r="cert">Certificate</a>
+  </nav>
+  <div class="rank" id="rank"></div>
+</div></header>
+<main class="wrap" id="view"></main>
+
+<script>
+/* ============ CONTENT: Studio 129 ============
+   Every rule here is paraphrased from ISO 129-1:2018 (UNE-EN ISO 129-1:2019).
+   Clause numbers let students check the original through the UPV Library. */
+
+/* Set this to the UPV Library page for AENORmás so students can open the full standard. */
+const LIBRARY_URL = '';
+
+const SYM = {
+  dia: '<svg viewBox="0 0 24 24" class="sym" aria-hidden="true"><circle cx="12" cy="12" r="7"/><line x1="5" y1="19" x2="19" y2="5"/></svg>',
+  R: '<svg viewBox="0 0 24 24" class="sym" aria-hidden="true"><text x="12" y="18" text-anchor="middle">R</text></svg>',
+  sq: '<svg viewBox="0 0 24 24" class="sym" aria-hidden="true"><rect x="5" y="5" width="14" height="14"/></svg>',
+  sdia: '<svg viewBox="0 0 40 24" class="sym" aria-hidden="true"><text x="9" y="18" text-anchor="middle">S</text><circle cx="27" cy="12" r="7"/><line x1="20" y1="19" x2="34" y2="5"/></svg>',
+  sr: '<svg viewBox="0 0 40 24" class="sym" aria-hidden="true"><text x="20" y="18" text-anchor="middle">SR</text></svg>',
+  arc: '<svg viewBox="0 0 24 24" class="sym" aria-hidden="true"><path d="M4 17 A9 9 0 0 1 20 17"/></svg>',
+  t: '<svg viewBox="0 0 32 24" class="sym" aria-hidden="true"><text x="16" y="18" text-anchor="middle">t=</text></svg>',
+  depth: '<svg viewBox="0 0 24 24" class="sym" aria-hidden="true"><line x1="5" y1="4" x2="19" y2="4"/><line x1="12" y1="4" x2="12" y2="20"/><polyline points="7,14 12,20 17,14"/></svg>',
+  cbore: '<svg viewBox="0 0 24 24" class="sym" aria-hidden="true"><polyline points="4,6 4,18 20,18 20,6"/></svg>',
+  csink: '<svg viewBox="0 0 24 24" class="sym" aria-hidden="true"><polyline points="4,6 12,18 20,6"/></svg>',
+  dev: '<svg viewBox="0 0 32 24" class="sym" aria-hidden="true"><path d="M4 16 A6 6 0 0 1 16 16"/><line x1="4" y1="16" x2="27" y2="16"/><polygon class="f" points="28,16 21,13.8 21,18.2"/></svg>',
+  betw: '<svg viewBox="0 0 40 24" class="sym" aria-hidden="true"><line x1="6" y1="12" x2="34" y2="12"/><polygon class="f" points="4,12 11,9.6 11,14.4"/><polygon class="f" points="36,12 29,9.6 29,14.4"/></svg>',
+  M: '<svg viewBox="0 0 24 24" class="sym" aria-hidden="true"><text x="12" y="18" text-anchor="middle">M</text></svg>'
+};
+
+/* [English, Spanish, category, definition, example, clause, symbol key, check-Spanish flag] */
+const GLOSSARY_RAW = [
+  ['centre line', 'línea de eje', 'Lines', 'A thin long-dashed dotted line that shows an axis or a centre plane.', 'Draw a centre line through the middle of every hole.', '3.1.1'],
+  ['dimension line', 'línea de cota', 'Lines', 'A thin line with a terminator at each end. It shows the size or the distance that is measured.', 'The dimension line stays unbroken, even when the part is shown broken.', '3.1.2, 5.3'],
+  ['extension line', 'línea auxiliar de cota', 'Lines', 'A thin line that continues the outline (or the centre line) of a feature, so the dimension can sit outside the view.', 'Extension lines go about eight times the line width beyond the dimension line.', '3.1.3, 5.5'],
+  ['leader line', 'línea de referencia', 'Lines', 'A thin line that connects a value or a note to the feature it refers to.', 'The leader line ends with an arrowhead on the edge of the hole.', '5.6', '', true],
+  ['reference line', 'línea de apoyo', 'Lines', 'A short horizontal line at the end of a leader line. The text is written above it.', 'Write 4× ⌀10 above the reference line.', '5.7.3, 9.2', '', true],
+  ['continuous narrow line', 'línea continua fina', 'Lines', 'The line type used for dimension lines, extension lines and leader lines.', 'Dimension lines are drawn as continuous narrow lines.', '5.3, 5.5'],
+  ['outline', 'contorno', 'Lines', 'The visible edges of a part in a view.', 'Outlines must not be used as dimension lines.', '5.3'],
+  ['hatching', 'rayado', 'Lines', 'Parallel thin lines that show the cut surface in a section.', 'Do not draw extension lines parallel to the hatching.', '5.5'],
+  ['long-dashed double-dotted line', 'línea de trazo largo y doble punto', 'Lines', 'A narrow line used, for example, to show the shape of a part before bending.', 'The flat blank is shown with a long-dashed double-dotted line.', '7.15'],
+
+  ['terminator', 'extremo de cota', 'Dimension elements', 'The mark at the end of a dimension line: an arrowhead, an oblique stroke or a point.', 'Use the same type of arrowhead on the whole drawing.', '5.4.1', '', true],
+  ['arrowhead', 'flecha', 'Dimension elements', 'The most common terminator. The standard allows four types, but only one type per drawing.', 'The arrowheads are closed, filled and have a 30° angle.', '5.4.1'],
+  ['oblique stroke', 'trazo oblicuo', 'Dimension elements', 'A short slanted line used as a terminator instead of an arrowhead.', 'Oblique strokes are common in construction drawings.', '5.4.1'],
+  ['origin symbol', 'símbolo de origen', 'Dimension elements', 'A small circle that marks where running or coordinate dimensioning starts. It is not a datum.', 'All the running dimensions start from the origin symbol.', '3.1.4, 5.4.2'],
+  ['dimensional value', 'cifra de cota', 'Dimension elements', 'The number that gives the size. It is written above the dimension line and parallel to it.', 'The dimensional value must not be crossed by any line.', '3.2.2, 5.7'],
+  ['property indicator', 'indicador de propiedad', 'Dimension elements', 'A symbol written just before the value, with no space, that tells you the shape of the feature (⌀, R, □…).', 'In ⌀16, the property indicator tells you the feature is circular.', '3.2.5, 5.2', '', true],
+  ['reference letter', 'letra de referencia', 'Dimension elements', 'A capital letter that identifies a feature or a point on the drawing.', 'Points A and B mark the ends of the painted area.', '5.1, 7.5'],
+  ['flag note', 'nota de bandera', 'Dimension elements', 'A numbered symbol that links a note to specific features or dimensions. The note is repeated near the title block.', 'Flag note 2: leave this surface unpainted.', '9.1', '', true],
+  ['decimal marker', 'separador decimal (coma)', 'Dimension elements', 'On the drawing the standard uses a comma, not a point: 7,26. In spoken English we still say “seven point two six”.', 'Write 0,5 on the drawing.', '4.1.1'],
+
+  ['dimension', 'cota', 'Types of dimension', 'A value that defines a size, a position or an angle.', 'Each dimension is shown only once.', '4.1.1'],
+  ['linear dimension', 'cota lineal', 'Types of dimension', 'A length: the size of a feature or the distance between two features.', 'The overall length is a linear dimension.', '3.2.4'],
+  ['angular dimension', 'cota angular', 'Types of dimension', 'An angle. The unit (°) is always written with the value.', 'The chamfer has an angular dimension of 30°.', '3.2.1, 4.3'],
+  ['auxiliary dimension', 'cota auxiliar', 'Types of dimension', 'A dimension for information only, written in parentheses, e.g. (94). It should not be toleranced.', '(94) can be calculated from the other dimensions.', '4.1.4, 7.12'],
+  ['theoretically exact dimension (TED)', 'cota teóricamente exacta', 'Types of dimension', 'An exact value written inside a rectangular frame. It is never toleranced.', 'The hole positions are TEDs in frames.', '4.1.5, 7.13'],
+  ['out-of-scale dimension', 'cota fuera de escala', 'Types of dimension', 'A value that does not match the scale of the drawing. It is underlined. Only in exceptional cases, and never in 3D models.', 'The underlined 15 tells you the feature is not drawn to scale.', '4.1.3, 7.11'],
+  ['developed length', 'longitud desarrollada', 'Types of dimension', 'The length of the material before it is bent or formed.', 'The developed length of the hook is 30.', '3.2.3, 7.15', 'dev'],
+  ['arc length', 'longitud de arco', 'Types of dimension', 'A length measured along a curve. The arc symbol goes before the value.', '⌒55 is measured along the curved edge.', '7.6', 'arc'],
+  ['chord', 'cuerda', 'Types of dimension', 'The straight distance between the two ends of an arc.', 'The chord is 20, but the arc length is longer.', '7.6'],
+  ['feature', 'elemento', 'Types of dimension', 'Any part of a workpiece: a hole, a face, an edge, a slot…', 'Dimension each feature in the view that shows it most clearly.', '4.2'],
+  ['feature of size', 'elemento dimensional', 'Types of dimension', 'A feature defined by a size, such as a cylinder or two parallel faces.', 'A diameter is the size of a feature of size.', '3.2.4', '', true],
+  ['nominal value', 'valor nominal', 'Types of dimension', 'The ideal, theoretical value written on the drawing.', 'The nominal diameter is 30.', '3.2.2'],
+
+  ['diameter', 'diámetro', 'Symbols', 'Written before the value of a circular feature: ⌀16.', 'The shaft has a diameter of 16.', '7.2', 'dia'],
+  ['radius', 'radio', 'Symbols', 'Written before the value of an arc, normally one smaller than 180°: R18.', 'Round the corner with R5.', '7.3', 'R'],
+  ['square', 'cuadrado', 'Symbols', 'A square feature, dimensioned by one side only: □40.', 'The end of the shaft is □40.', '7.7', 'sq'],
+  ['spherical diameter', 'diámetro esférico', 'Symbols', 'The diameter of a spherical feature: S⌀50.', 'The ball has a spherical diameter of 50.', '7.4', 'sdia'],
+  ['spherical radius', 'radio esférico', 'Symbols', 'The radius of a spherical feature: SR60.', 'The domed cap has a spherical radius of 60.', '7.4', 'sr'],
+  ['thickness', 'espesor', 'Symbols', 'The thickness of a thin part: t=3. The leader line ends with a point on the surface.', 'The sheet is t=3.', '7.16.1', 't'],
+  ['depth', 'profundidad', 'Symbols', 'The depth of a hole or an internal feature.', 'A hole ⌀5 with a depth of 12.', '7.1', 'depth'],
+  ['counterbore', 'avellanado cilíndrico', 'Symbols', 'A wider hole with a flat bottom at the top of a hole, for a screw head. Given by its diameter and depth.', 'Counterbore ⌀8, depth 2,5.', '7.1', 'cbore', true],
+  ['countersink', 'avellanado cónico', 'Symbols', 'A conical opening at the top of a hole, given by the diameter at the surface and the included angle.', 'Countersink ⌀8 × 90°.', '7.1, B.2', 'csink'],
+  ['between', 'entre', 'Symbols', 'A double arrow between two letters, A ↔ B, that shows where a requirement starts and finishes.', 'The coating applies only from A to B.', '7.5', 'betw'],
+  ['chamfer', 'chaflán', 'Symbols', 'A small angled cut on an edge. 2 × 45° means 2 long at 45°.', 'Add a 1 × 45° chamfer to the end of the shaft.', '7.1, B.1'],
+  ['metric thread', 'rosca métrica', 'Symbols', 'M before the value means a metric screw thread: M16.', 'The bolt is M16.', '5.8.2', 'M'],
+
+  ['tolerance', 'tolerancia', 'Tolerances', 'The permitted variation of a size.', 'The rules for tolerances are in the ISO 14405 series.', '6.1'],
+  ['limit deviations', 'diferencias límite', 'Tolerances', 'The amounts that can be added to or taken from the value. The upper one is written above the lower one.', '30 +1/−2 has two limit deviations.', '6.2', '', true],
+  ['plus-minus sign (±)', 'signo más-menos (±)', 'Tolerances', 'Used when the tolerance is the same above and below the value: 30 ±1.', '30 ±1 means any size from 29 to 31.', '6.2'],
+  ['min. / max.', 'mín. / máx.', 'Tolerances', 'Written after the value to limit a dimension in one direction only: 32 min.', 'The slot must be 32 min.', '6.3'],
+  ['ISO tolerance code', 'código ISO de tolerancia', 'Tolerances', 'A letter and a number after the value instead of deviations, e.g. ⌀30 f7.', 'The shaft is ⌀30 f7.', '4.1.7, 6.2'],
+
+  ['chain dimensioning', 'acotación en serie', 'Arrangements', 'Single dimensions placed one after another in a row.', 'The steps of the shaft use chain dimensioning.', '8.2'],
+  ['parallel dimensioning', 'acotación en paralelo', 'Arrangements', 'Dimension lines drawn parallel to each other, all starting from the same feature.', 'All the lengths are measured from the left face.', '8.3'],
+  ['running dimensioning', 'acotación progresiva', 'Arrangements', 'Simplified parallel dimensioning that starts from one origin symbol. The values sit near the arrowheads.', 'Running dimensions save space on long parts.', '8.4', '', true],
+  ['coordinate dimensioning', 'acotación por coordenadas', 'Arrangements', 'Positions given as X and Y values from an origin, often in a table.', 'Hole 5 is at X = 35, Y = 25.', '8.5'],
+  ['combined dimensioning', 'acotación combinada', 'Arrangements', 'Two or more methods of dimensioning on the same drawing.', 'Most real drawings use combined dimensioning.', '8.6'],
+  ['tabular dimensioning', 'acotación tabular', 'Arrangements', 'Letters on the drawing with their values in a table. Useful for a family of parts.', 'Three sizes of the same bracket share one drawing and a table.', '5.9', '', true],
+  ['repeated features (n×)', 'elementos repetidos', 'Arrangements', 'Identical features: number + × + space + value, e.g. 4× ⌀10.', '4× ⌀10 means four holes with a diameter of 10.', '4.1.2, 7.8.2'],
+  ['equally spaced features', 'elementos equidistantes', 'Arrangements', 'Features with the same spacing: 17× 18 (=306) means 17 spaces of 18, total 306.', 'The total in parentheses is an auxiliary dimension.', '7.8.1'],
+  ['symmetrical part', 'pieza simétrica', 'Arrangements', 'A part that can be drawn in half or in a quarter. Symmetrical features are dimensioned only once.', '6× R8 covers all the rounded corners.', '4.1.6, 7.9'],
+
+  ['view', 'vista', 'Drawing basics', 'A projection of the part seen from one direction.', 'Put each dimension in the view that shows the feature most clearly.', '4.2'],
+  ['section', 'corte (sección)', 'Drawing basics', 'A view of the part cut by a plane. The cut surface is hatched.', 'The internal diameters are dimensioned in the section.', '4.2'],
+  ['hidden feature', 'elemento oculto', 'Drawing basics', 'A feature you cannot see in the view (dashed lines). Avoid dimensioning it.', 'Do not dimension hidden features unless it is absolutely necessary.', '4.2'],
+  ['title block', 'cuadro de rotulación', 'Drawing basics', 'The box with the drawing information, usually in the bottom right corner.', 'Flag notes are repeated near the title block.', '9.1'],
+  ['scale', 'escala', 'Drawing basics', 'The ratio between the size on the drawing and the real size.', 'By default, dimension lines are drawn to the scale of the drawing.', '4.1.3'],
+  ['first-angle / third-angle projection', 'sistema europeo / sistema americano', 'Drawing basics', 'The two systems for arranging views. The figures in ISO 129-1 use first-angle, but the rules work for both.', 'Our studio uses first-angle projection.', 'Introduction'],
+  ['workpiece', 'pieza', 'Drawing basics', 'The part being made.', 'The workpiece is bent after cutting.', '7.15'],
+
+  ['shall', 'debe (obligatorio)', 'Language of standards', 'A requirement. You must do it.', 'Dimension lines shall be continuous narrow lines.', '—'],
+  ['shall not', 'no debe (prohibido)', 'Language of standards', 'A prohibition. You must not do it.', 'Centre lines shall not be used as dimension lines.', '—'],
+  ['should', 'debería (recomendado)', 'Language of standards', 'A recommendation. It is good practice, but not compulsory.', 'Dimensions should not be placed inside the outline.', '—'],
+  ['may', 'puede (permitido)', 'Language of standards', 'A permission. You are allowed to do it.', 'Arrowheads may be placed outside the extension lines.', '—'],
+  ['clause', 'apartado', 'Language of standards', 'A numbered section of the standard, e.g. 5.4.1.', 'According to clause 4.3, the angle unit shall always be shown.', '—'],
+  ['NOTE', 'nota', 'Language of standards', 'Extra information inside the standard. A note is not a requirement.', 'NOTE: The origin symbol does not work as a datum.', '—'],
+  ['normative / informative', 'normativo / informativo', 'Language of standards', 'A normative annex contains requirements. An informative annex only gives information.', 'Annex A is normative; Annex B is informative.', 'Annexes']
+];
+
+const GLOSSARY = GLOSSARY_RAW.map(([en, es, cat, def, ex, cl, sym, check]) => ({ en, es, cat, def, ex, cl, sym: sym || '', check: !!check }));
+
+/* ---------- Mission content ---------- */
+
+/* Mission 1: markers on the drawing, in this order */
+const ANATOMY = ['dimension line', 'dimensional value', 'terminator', 'extension line', 'leader line', 'reference line', 'origin symbol', 'property indicator', 'reference letter', 'centre line'];
+
+/* Mission 2 */
+const SYMBOL_ITEMS = [
+  ['dia', 'Diameter'], ['R', 'Radius'], ['sq', 'Square'], ['sdia', 'Spherical diameter'],
+  ['sr', 'Spherical radius'], ['arc', 'Arc length'], ['t', 'Thickness of a thin part'], ['depth', 'Depth of a hole'],
+  ['cbore', 'Cylindrical counterbore'], ['csink', 'Countersink'], ['dev', 'Developed length (before bending)'], ['betw', 'Between (start and end of an area)']
+];
+
+/* Mission 3: [sentence with ___, answer, clause] */
+const MODAL_ITEMS = [
+  ['Dimensional values in decimal notation ___ use a comma as the decimal marker.', 'shall', '4.1.1'],
+  ['Whenever possible, dimensions ___ not be placed inside the outline of the part.', 'should', '4.2'],
+  ['Dimensioning hidden features is not recommended and ___ be avoided unless it is absolutely necessary.', 'should', '4.2'],
+  ['Dimension lines ___ be drawn as continuous narrow lines.', 'shall', '5.3'],
+  ['Where space is limited, dimension lines ___ be extended past the extension lines, with the arrowheads outside.', 'may', '5.3'],
+  ['Centre lines and the outlines of a feature ___ not be used as dimension lines.', 'shall', '5.3'],
+  ['Only one type of arrowhead ___ be used on a single drawing.', 'shall', '5.4.1'],
+  ['Extension lines ___ not be drawn between views.', 'should', '5.5'],
+  ['Extension lines ___ extend approximately eight times the line width beyond the dimension line.', 'shall', '5.5'],
+  ['For angular dimensions, the unit ___ always be written with each value.', 'shall', '4.3'],
+  ['In general, a diameter ___ be used for arcs greater than 180°.', 'should', '7.2'],
+  ['When dimensioning a radius, only one terminator ___ be used.', 'shall', '7.3.1'],
+  ['When there is no ambiguity, a diameter ___ be dimensioned with a single dimension line and one arrowhead.', 'may', '5.7.3'],
+  ['If one of the limit deviations is zero, it ___ be written as the digit 0, without a sign.', 'shall', '6.2'],
+  ['Trailing zeros, as in +0,20, ___ or may not be presented.', 'may', '4.1.7']
+];
+const MODAL_MEANING = { shall: 'a requirement (obligatorio)', should: 'a recommendation (recomendado)', may: 'a permission (permitido)' };
+
+/* Mission 4: first option is the correct one (options are shuffled on screen) */
+const NOTATION = [
+  { q: '2× ⌀18', o: ['Two features with a diameter of 18', 'One feature with a diameter of 36', 'A hole 18 deep, drilled twice', 'Two radii of 18'], cl: '4.1.2' },
+  { q: '30 ±1', o: ['Any size from 29 to 31', 'Exactly 30 or 31', '31, because 30 + 1', 'Any size from 30 to 31'], cl: '6.2' },
+  { q: '32 min.', o: ['At least 32', 'At most 32', 'About 32', 'The minimum view is 32'], cl: '6.3' },
+  { q: '(94)', o: ['An auxiliary dimension, for information only', 'An out-of-scale dimension', 'A theoretically exact dimension', 'A dimension to check twice'], cl: '4.1.4' },
+  { q: '<u>50</u>', o: ['The feature is not drawn to scale', 'A very important dimension', 'A theoretically exact dimension', 'An auxiliary dimension'], cl: '4.1.3' },
+  { q: '<span class="ted">50</span>', o: ['A theoretically exact dimension, never toleranced', 'An auxiliary dimension', 'A square with sides of 50', 'An out-of-scale dimension'], cl: '4.1.5' },
+  { q: 'SR10', o: ['A spherical radius of 10', 'A square radius of 10', 'A surface roughness of 10', 'Radius 10 on section S'], cl: '7.4' },
+  { q: '⌀5 ' + SYM.depth + '12', o: ['A hole with a diameter of 5 and a depth of 12', '12 holes with a diameter of 5', 'Diameter 5 with a tolerance of 12', 'A countersink 5 × 12'], cl: '7.1' },
+  { q: '17× 18 (=306)', o: ['17 equal spaces of 18, with a total of 306', '18 equal spaces of 17', '306 identical holes', '17 holes with a diameter of 18'], cl: '7.8.1' },
+  { q: '2 × 45°', o: ['A chamfer 2 long at 45°', 'Two angles of 45°', 'Two chamfers of 45 mm', 'An angle of 90°'], cl: '7.1, B.1' },
+  { q: 't=3', o: ['A thin part with a thickness of 3', 'A tolerance of 3', 'Three teeth', 'Type 3 lettering'], cl: '7.16.1' },
+  { q: SYM.arc + '55', o: ['An arc length of 55, measured along the curve', 'A radius of 55', 'A chord of 55', 'An angle of 55°'], cl: '7.6' },
+  { q: SYM.sq + '40', o: ['A square feature with sides of 40', 'An area of 40', 'A theoretically exact 40', 'A cube of 40'], cl: '7.7' }
+];
+
+/* Mission 5 */
+const RULES = [
+  { id: 'A', text: 'When space is limited, the arrowheads can go outside the extension lines.', cl: '5.3, 5.4.1' },
+  { id: 'B', text: 'A dimension for information only is written in parentheses.', cl: '4.1.4' },
+  { id: 'C', text: 'A value that is not to scale is underlined.', cl: '4.1.3' },
+  { id: 'D', text: 'A theoretically exact dimension is written in a frame.', cl: '4.1.5' },
+  { id: 'E', text: 'Identical features: number + × + space + value.', cl: '4.1.2' },
+  { id: 'F', text: 'A radius has only one terminator, on the arc.', cl: '7.3.1' },
+  { id: 'G', text: 'If the part is shown broken, the dimension line is not broken.', cl: '5.3' },
+  { id: 'H', text: 'A symmetrical tolerance is written once, after ±.', cl: '6.2' }
+];
+
+/* Mission 6: hotspots are in the drawing's own coordinates (see errorSVG in app.js) */
+const ERRORS = [
+  { id: 'e1', c: [200, 276, 26], why: 'It uses a decimal point. On the drawing the decimal marker is a comma: 110,5.', cl: '4.1.1' },
+  { id: 'e2', c: [82, 196, 20], why: 'The vertical value reads from the left. Vertical text must read from the right-hand side.', cl: '4.1.1' },
+  { id: 'e3', c: [272, 248, 24], why: 'R is used on a full circle. A circular hole is dimensioned with a diameter: ⌀18.', cl: '7.2' },
+  { id: 'e4', c: [305, 104, 20], why: 'The angle has no unit. Angular dimensions always show the unit: 45°.', cl: '4.3' },
+  { id: 'e5', r: [334, 120, 36, 120], why: 'This dimension has open arrowheads and the others are filled. Only one type of arrowhead per drawing.', cl: '5.4.1' },
+  { id: 'e6', c: [125, 258, 18], why: 'The value is under the dimension line. Values go above the line, near the middle.', cl: '5.7.2' }
+];
+
+/* Final: the workshop lock. Students need the standard itself to find the digits. */
+const LOCKS = [
+  { q: 'Clause 5.4.1 lists the types of arrowhead you can use. How many types are there?', a: 4, hint: 'Count the numbered items under “arrowheads”.' },
+  { q: 'Table A.2: when the line width is 0,5 mm, what is the lettering height in mm?', a: 5, hint: 'Look at the table in Annex A.3. Read the column for 0,5.' },
+  { q: 'Clause 5.5: extension lines extend beyond the dimension line by about how many times the line width?', a: 8, hint: 'The number is written as a word.' },
+  { q: 'Clause 5.7.2: the minimum space between the dimension line and the bottom of the characters is how many times the line width?', a: 2, hint: 'Look for “a minimum of”.' }
+];
+
+/* ============ STUDIO 129: app ============ */
+(function () {
+'use strict';
+
+/* ---------- state ---------- */
+const KEY = 'studio129-v1';
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* storage unavailable: progress lasts for this visit */ } }
+const S = Object.assign({ scores: {}, badges: [], listens: 0, name: '', unlockAll: false, opened: [] }, load());
+
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const PASS = 0.6;
+
+/* ---------- drawing helpers (SVG) ---------- */
+const P = Math.PI;
+function ah(x, y, a, open) {
+  const L = 10, w = 2.7, c = Math.cos(a), s = Math.sin(a);
+  const bx = x - L * c, by = y - L * s;
+  const p1 = [bx - w * s, by + w * c], p2 = [bx + w * s, by - w * c];
+  const f = n => n.toFixed(1);
+  return open
+    ? `<polyline class="th" points="${f(p1[0])},${f(p1[1])} ${x},${y} ${f(p2[0])},${f(p2[1])}"/>`
+    : `<polygon class="ar" points="${x},${y} ${f(p1[0])},${f(p1[1])} ${f(p2[0])},${f(p2[1])}"/>`;
+}
+const L = (x1, y1, x2, y2, c = 'th') => `<line class="${c}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+const T = (x, y, t, o = {}) => `<text class="tx" x="${x}" y="${y}" text-anchor="${o.a || 'middle'}"${o.r ? ` transform="rotate(${o.r} ${x} ${y})"` : ''}${o.s ? ` style="font-size:${o.s}px"` : ''}>${t}</text>`;
+function dimH(x1, x2, y, label, o = {}) {
+  return L(x1, y, x2, y) + ah(x1, y, P, o.open) + ah(x2, y, 0, o.open) + T(o.tx ?? (x1 + x2) / 2, o.below ? y + 17 : y - 5, label);
+}
+function dimV(x, y1, y2, label, o = {}) {
+  const m = (y1 + y2) / 2, wrong = o.wrong;
+  return L(x, y1, x, y2) + ah(x, y1, -P / 2, o.open) + ah(x, y2, P / 2, o.open) +
+    (wrong ? T(x + 5, m, label, { r: 90 }) : T(x - 5, m, label, { r: -90 }));
+}
+const svg = (vb, inner, cls = '') => `<svg class="dw ${cls}" viewBox="${vb}" role="img" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+
+/* Mission 1 drawing: plate with a hole */
+function anatomySVG() {
+  const lead = Math.atan2(180 - 274, 157.3 - 320);
+  const marks = [[54, 196], [16, 150], [298, 84], [56, 246], [250, 252], [352, 290], [64, 54], [331, 244], [314, 186], [184, 160]];
+  return svg('0 36 400 272',
+    `<rect class="ol" x="80" y="110" width="200" height="120"/>
+     <circle class="ol" cx="140" cy="170" r="20"/>
+     ${L(112, 170, 168, 170, 'cl')}${L(140, 142, 140, 198, 'cl')}
+     ${L(80, 106, 80, 62)}${L(140, 104, 140, 62)}${L(280, 106, 280, 62)}
+     ${L(80, 70, 280, 70)}<circle class="bg" cx="80" cy="70" r="4"/>${ah(140, 70, 0)}${ah(280, 70, 0)}
+     ${T(134, 64, '18', { a: 'end' })}${T(274, 64, '60', { a: 'end' })}
+     ${L(76, 110, 32, 110)}${L(76, 230, 32, 230)}${dimV(40, 110, 230, '36')}
+     ${L(157.3, 180, 320, 274)}${ah(157.3, 180, lead)}${L(320, 274, 372, 274)}
+     <circle cx="331" cy="263" r="4.5" class="th"/>${L(325, 269, 337, 257)}${T(340, 268, '12', { a: 'start' })}
+     ${T(293, 196, 'A', { a: 'start', s: 17 })}
+     ${marks.map(([x, y], i) => `<g class="mk" data-i="${i}"><circle cx="${x}" cy="${y}" r="9"/><text x="${x}" y="${y + 4}">${i + 1}</text></g>`).join('')}`);
+}
+
+/* Mission 6 drawing: bracket with six mistakes */
+function errorSVG() {
+  const arcEnd = [270 + 36 * Math.cos(P / 4), 90 + 36 * Math.sin(P / 4)];
+  return svg('0 0 420 320',
+    `<polygon class="ol" points="90,90 270,90 310,130 310,230 90,230"/>
+     <circle class="ol" cx="160" cy="160" r="18"/>
+     ${L(134, 160, 186, 160, 'cl')}${L(160, 134, 160, 186, 'cl')}
+     ${L(90, 86, 90, 52)}${L(270, 86, 270, 52)}${dimH(90, 270, 60, '90')}
+     ${L(86, 90, 38, 90)}${L(86, 230, 38, 230)}${dimV(46, 90, 230, '70')}
+     ${L(132, 160, 64, 160)}${dimV(72, 160, 230, '35', { wrong: true })}
+     ${L(90, 234, 90, 294)}${L(310, 234, 310, 294)}${dimH(90, 310, 286, '110.5')}
+     ${L(160, 190, 160, 252, 'cl')}${L(90, 244, 160, 244)}${ah(90, 244, P)}${ah(160, 244, 0)}${T(125, 262, '35')}
+     ${L(172.7, 172.7, 256, 256)}${ah(172.7, 172.7, -3 * P / 4)}${L(256, 256, 292, 256)}${T(260, 251, 'R9', { a: 'start' })}
+     ${L(274, 90, 322, 90)}<path class="th" d="M306 90 A36 36 0 0 1 ${arcEnd[0].toFixed(1)} ${arcEnd[1].toFixed(1)}"/>
+     ${ah(306, 90, -P / 2)}${ah(+arcEnd[0].toFixed(1), +arcEnd[1].toFixed(1), 3 * P / 4)}${T(312, 110, '45', { a: 'start' })}
+     ${L(314, 130, 358, 130)}${L(314, 230, 358, 230)}${dimV(350, 130, 230, '50', { open: true })}
+     <g id="marks"></g>`, 'tap');
+}
+
+/* Mission 5 mini drawings, keyed by rule id */
+const MINI = {
+  A: () => svg('0 0 200 110', `<polygon class="ol" points="40,95 40,45 95,45 95,57 105,57 105,45 160,45 160,95"/>${L(95, 41, 95, 14)}${L(105, 41, 105, 14)}${L(72, 20, 128, 20)}${ah(95, 20, 0)}${ah(105, 20, P)}${T(133, 17, '1,5', { a: 'start' })}`),
+  B: () => svg('0 0 200 110', `<polygon class="ol" points="30,100 30,58 100,58 100,70 170,70 170,100"/>${L(30, 54, 30, 12)}${L(100, 54, 100, 34)}${L(170, 66, 170, 12)}${dimH(30, 100, 40, '50')}${dimH(100, 170, 40, '44')}${dimH(30, 170, 18, '(94)')}`),
+  C: () => svg('0 0 200 110', `<rect class="ol" x="40" y="22" width="120" height="48"/>${L(40, 74, 40, 102)}${L(160, 74, 160, 102)}${dimH(40, 160, 96, '85')}${L(91, 94, 109, 94)}`),
+  D: () => svg('0 0 200 110', `<rect class="ol" x="30" y="45" width="140" height="55"/><circle class="ol" cx="100" cy="72" r="10"/>${L(86, 72, 114, 72, 'cl')}${L(100, 58, 100, 86, 'cl')}${L(30, 41, 30, 14)}${L(100, 56, 100, 14)}${L(30, 24, 100, 24)}${ah(30, 24, P)}${ah(100, 24, 0)}<rect class="th" x="53" y="4" width="24" height="16"/>${T(65, 17, '70')}`),
+  E: () => { const a = Math.atan2(45.8 - 20, 59.2 - 80); return svg('0 0 200 110', `<rect class="ol" x="30" y="32" width="140" height="70"/>${[[55, 50], [145, 50], [55, 84], [145, 84]].map(([x, y]) => `<circle class="ol" cx="${x}" cy="${y}" r="6"/>`).join('')}${L(59.2, 45.8, 80, 20)}${ah(59.2, 45.8, a)}${L(80, 20, 138, 20)}${T(84, 15, '4× ⌀10', { a: 'start' })}`); },
+  F: () => svg('0 0 200 110', `<path class="ol" d="M30 100 L30 20 L120 20 A45 45 0 0 1 165 65 L165 100 Z"/>${L(115, 65, 125, 65)}${L(120, 60, 120, 70)}${L(120, 65, 151.8, 33.2)}${ah(151.8, 33.2, -P / 4)}${T(130, 42, 'R45', { r: -45 })}`),
+  G: () => svg('0 0 200 110', `<polyline class="ol" points="84,40 20,40 20,72 84,72"/><polyline class="ol" points="116,40 180,40 180,72 116,72"/><path class="th" d="M84 40 q6 8 0 16 q-6 8 0 16"/><path class="th" d="M116 40 q6 8 0 16 q-6 8 0 16"/>${L(20, 76, 20, 104)}${L(180, 76, 180, 104)}${dimH(20, 180, 98, '450')}`),
+  H: () => svg('0 0 200 110', `<rect class="ol" x="40" y="44" width="120" height="44"/>${L(40, 40, 40, 12)}${L(160, 40, 160, 12)}${dimH(40, 160, 20, '30 ±0,1')}`)
+};
+
+/* ---------- missions ---------- */
+const MISSIONS = [
+  { id: 'm1', lvl: 1, n: 1, title: 'Anatomy of a dimension', short: 'Name the ten parts of a dimensioned drawing.', max: 100, items: '10 labels',
+    note: 'Before you draw anything for us, show me you know the parts. Label every numbered element on this drawing.',
+    terms: ['dimension line', 'extension line', 'leader line', 'reference line', 'terminator', 'origin symbol', 'property indicator'], clauses: '3.1, 5.1, Figure 5', run: runAnatomy },
+  { id: 'm2', lvl: 1, n: 2, title: 'Symbol match', short: 'Match twelve property indicators to their meaning.', max: 120, items: '12 pairs',
+    note: 'The workshop reads symbols, not sentences. Match each symbol to its meaning. Finish in under 90 seconds and you get the Quick Hands badge.',
+    terms: ['diameter', 'radius', 'counterbore', 'countersink', 'developed length', 'between'], clauses: '5.2, Table 1', run: runSymbols },
+  { id: 'm3', lvl: 2, n: 3, title: 'Shall, should or may?', short: 'Decide which rules are compulsory, recommended or allowed.', max: 150, items: '15 rules',
+    note: 'Some rules I will never bend. Some are good practice. Some just give you a choice. Fill each gap with shall, should or may.',
+    terms: ['shall', 'should', 'may', 'clause'], clauses: '4, 5, 6, 7', run: runModals },
+  { id: 'm4', lvl: 2, n: 4, title: 'Read the notation', short: 'Say what each dimension on a drawing actually means.', max: 130, items: '13 questions',
+    note: 'A drawing is a message. If you misread it, we make the wrong part. What does each of these dimensions tell the workshop?',
+    terms: ['auxiliary dimension', 'theoretically exact dimension (TED)', 'out-of-scale dimension', 'plus-minus sign (±)', 'equally spaced features'], clauses: '4.1, 6, 7', run: runNotation },
+  { id: 'm5', lvl: 3, n: 5, title: 'Rule meets drawing', short: 'Match eight rules of the standard to the drawings that follow them.', max: 80, items: '8 drawings',
+    note: 'Here are eight details from drawings I approved last week. Tell me which rule each one follows.',
+    terms: ['auxiliary dimension', 'radius', 'repeated features (n×)', 'limit deviations'], clauses: '4.1, 5.3, 6.2, 7.3', run: runRules },
+  { id: 'm6', lvl: 3, n: 6, title: 'Spot the error', short: 'Find six mistakes on a real bracket drawing and explain them.', max: 120, items: '6 errors',
+    note: 'An intern sent me this bracket. It has six mistakes. Tap each one, then tell me which rule it breaks. Careful: wrong taps are noted.',
+    terms: ['decimal marker', 'angular dimension', 'arrowhead', 'diameter', 'dimensional value'], clauses: '4.1.1, 4.3, 5.4.1, 5.7.2, 7.2', run: runErrors },
+  { id: 'esc', lvl: 4, n: 7, title: 'The locked workshop', short: 'Open the four locks with numbers hidden in the standard.', max: 100, items: '4 locks',
+    note: 'I have locked the workshop. The code is in ISO 129-1 itself. Open the standard, find the four numbers and you are in.',
+    terms: ['arrowhead', 'extension line', 'dimensional value'], clauses: '5.4.1, 5.5, 5.7.2, Annex A', run: runEscape }
+];
+const LEVELS = { 1: ['Level 1', 'The apprentice desk'], 2: ['Level 2', 'The drawing office'], 3: ['Level 3', 'The workshop floor'], 4: ['Final', 'Escape the workshop'] };
+const MAXXP = MISSIONS.reduce((a, m) => a + m.max, 0);
+const RANKS = [[0, 'Apprentice'], [150, 'Draughtsperson'], [350, 'Designer'], [550, 'Senior Designer'], [720, 'Chief Designer']];
+
+const BADGES = [
+  { id: 'first', name: 'First sheet', d: 'Finish your first mission.', g: 'M12 6v12M8 10l4-4 4 4' },
+  { id: 'symbols', name: 'Symbol master', d: 'Get every symbol right first time.', g: 'M8 12a4 4 0 1 0 8 0a4 4 0 1 0-8 0M7 17l10-10' },
+  { id: 'quick', name: 'Quick hands', d: 'Finish Symbol match in under 90 s.', g: 'M12 7v5l3 2M12 4a8 8 0 1 0 .01 0' },
+  { id: 'rules', name: 'Rule reader', d: 'Score 100% in Shall, should or may.', g: 'M7 8h10M7 12h10M7 16h6' },
+  { id: 'clean', name: 'Clean sheet', d: 'Score 100% in any mission.', g: 'M7 12l3 3 7-7' },
+  { id: 'eagle', name: 'Eagle eye', d: 'Find all six errors with no wrong taps.', g: 'M4 12s3-5 8-5 8 5 8 5-3 5-8 5-8-5-8-5M12 10a2 2 0 1 0 .01 0' },
+  { id: 'ear', name: 'Good ear', d: 'Listen to 10 glossary terms.', g: 'M6 10v4h3l4 3V7L9 10H6M16 9a4 4 0 0 1 0 6' },
+  { id: 'escape', name: 'Escape artist', d: 'Open the locked workshop.', g: 'M8 11V8a4 4 0 0 1 8 0M7 11h10v8H7z' },
+  { id: 'chief', name: 'Chief designer', d: 'Reach the top rank.', g: 'M6 16l2-8 4 4 4-4 2 8z' }
+];
+
+const xp = () => MISSIONS.reduce((a, m) => a + ((S.scores[m.id] || {}).best || 0), 0);
+const rank = (v = xp()) => { let r = RANKS[0], nx = null; for (let i = 0; i < RANKS.length; i++) { if (v >= RANKS[i][0]) { r = RANKS[i]; nx = RANKS[i + 1] || null; } } return { name: r[1], at: r[0], next: nx }; };
+const passed = id => { const m = MISSIONS.find(x => x.id === id), s = S.scores[id]; return !!s && s.best >= Math.ceil(m.max * PASS); };
+const unlocked = m => { if (S.unlockAll) return true; const i = MISSIONS.indexOf(m); return i === 0 || passed(MISSIONS[i - 1].id); };
+
+function award(id) { if (!S.badges.includes(id)) { S.badges.push(id); return id; } return null; }
+
+/* ---------- top bar ---------- */
+function renderBar() {
+  const v = xp(), r = rank(v);
+  const pct = r.next ? ((v - r.at) / (r.next[0] - r.at)) * 100 : 100;
+  $('#rank').innerHTML = `<span class="lbl">${r.name}</span><span class="meter" aria-hidden="true"><i style="width:${pct.toFixed(0)}%"></i></span><span class="xp">${v}/${MAXXP} XP</span>`;
+  $('#rank').setAttribute('aria-label', `Rank ${r.name}, ${v} of ${MAXXP} XP`);
+  const h = location.hash.slice(1) || 'home';
+  $$('.nav a').forEach(a => a.setAttribute('aria-current', a.dataset.r === h || (a.dataset.r === 'home' && /^m\d|esc/.test(h)) ? 'page' : 'false'));
+}
+
+/* ---------- views ---------- */
+const V = $('#view');
+const titleBlock = (cells) => `<div class="tblock">${cells.map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join('')}</div>`;
+
+function badgeHTML(b) {
+  const got = S.badges.includes(b.id);
+  return `<div class="badge${got ? ' got' : ''}"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="hex" d="M12 1.5l9.5 5.5v10L12 22.5 2.5 17V7z"/><path class="gl" d="${b.g}" transform="translate(2.4 2.4) scale(.8)"/></svg><div><b>${b.name}</b><small>${got ? 'Earned' : b.d}</small></div></div>`;
+}
+
+function viewHome() {
+  const v = xp(), r = rank(v);
+  const nextM = MISSIONS.find(m => unlocked(m) && !passed(m.id)) || MISSIONS[0];
+  const started = Object.keys(S.scores).length > 0;
+  let html = `<section class="sheet"><div class="sheet-in"><div class="hero">
+    <div class="lead">
+      <span class="eyebrow">Technical English · ISO 129-1:2018 · Dimensions and tolerances</span>
+      <h1>Welcome to Studio&nbsp;129</h1>
+      <p>You are a new junior designer at a small product design studio. Every drawing you make goes to the workshop before anything is manufactured, and the workshop follows <b>ISO 129-1</b>, the international standard for showing dimensions on technical drawings.</p>
+      <div class="memo"><span class="eyebrow">Note from Nuria, workshop manager</span><p>If a drawing breaks the standard, I send it back. Get through the seven sheets, open my workshop and you will get your certificate.</p></div>
+      <div class="actions"><a class="btn primary" href="#${nextM.id}">${started ? 'Continue' : 'Start'}: ${esc(nextM.title)}</a><a class="btn" href="#briefing">Read the briefing</a></div>
+    </div>
+    <div class="ranks" aria-label="Ranks">
+      <span class="eyebrow">Your rank</span>
+      ${RANKS.map(([at, n]) => `<div class="${n === r.name ? 'on' : ''}"><span>${n}</span><span>${at} XP</span></div>`).join('')}
+    </div></div></div>
+    ${titleBlock([['Studio', 'Studio 129'], ['Standard', 'ISO 129-1:2018'], ['Designer', S.name ? esc(S.name) : 'New starter'], ['XP', `${v} / ${MAXXP}`]])}
+  </section>`;
+  for (const lv of [1, 2, 3, 4]) {
+    const ms = MISSIONS.filter(m => m.lvl === lv);
+    html += `<section class="level"><div class="level-head"><span class="eyebrow">${LEVELS[lv][0]}</span><h2>${LEVELS[lv][1]}</h2></div><div class="cards">`;
+    for (const m of ms) {
+      const s = S.scores[m.id], ul = unlocked(m);
+      const st = !ul ? ['lock', 'Locked'] : passed(m.id) ? ['ok', 'Approved'] : s ? ['bad', 'Returned'] : ['new', 'New'];
+      html += `<a class="mcard${ul ? '' : ' locked'}" href="#${m.id}" ${ul ? '' : 'aria-disabled="true" tabindex="-1"'}>
+        <span class="mini-stamp ${st[0]}">${st[1]}</span>
+        <div class="body"><span class="eyebrow">Sheet ${String(m.n).padStart(2, '0')} / 07</span><h3>${esc(m.title)}</h3><p>${esc(m.short)}</p></div>
+        ${titleBlock([['Task', m.items], ['Best', s ? `${s.best} / ${m.max}` : '—'], ['Clauses', m.clauses]])}</a>`;
+    }
+    html += `</div></section>`;
+  }
+  html += `<section class="level"><div class="level-head"><span class="eyebrow">${S.badges.length} of ${BADGES.length}</span><h2>Badges</h2></div><div class="badges">${BADGES.map(badgeHTML).join('')}</div></section>
+  <section class="level"><div class="level-head"><span class="eyebrow">After the missions</span><h2>Your own product</h2></div>
+    <p style="max-width:65ch">The final task is to dimension a simple object from your own design project and justify your choices in English. <a href="#final">Read the brief</a>. When you open the workshop you can also collect your <a href="#cert">certificate</a>.</p></section>
+  <div class="foot"><p>Studio 129 uses short paraphrases of ISO 129-1:2018 (UNE-EN ISO 129-1:2019) for teaching. All drawings are original. Read the full standard through the UPV Library${LIBRARY_URL ? ` (<a href="${LIBRARY_URL}" target="_blank" rel="noopener">open AENORmás</a>)` : ' (AENORmás)'}.</p>
+  <p>Your progress is saved in this browser only. <span id="resetwrap"><button class="linkbtn" id="reset">Reset my progress</button></span></p></div>`;
+  V.innerHTML = `<div class="stack">${html}</div>`;
+  $('#reset').onclick = () => {
+    $('#resetwrap').innerHTML = `This deletes all XP and badges. <button class="linkbtn" id="yes">Yes, reset</button> · <button class="linkbtn" id="no">Keep my progress</button>`;
+    $('#yes').onclick = () => { S.scores = {}; S.badges = []; S.listens = 0; S.opened = []; save(); render(); };
+    $('#no').onclick = () => render();
+  };
+}
+
+/* ---------- mission shell ---------- */
+function viewMission(m) {
+  if (!unlocked(m)) {
+    const prev = MISSIONS[MISSIONS.indexOf(m) - 1];
+    V.innerHTML = `<section class="sheet"><div class="sheet-in"><span class="eyebrow">Locked</span><h2>${esc(m.title)}</h2><p>Nuria will open this sheet when <b>${esc(prev.title)}</b> is approved (at least ${Math.round(PASS * 100)}%).</p><div class="actions"><a class="btn primary" href="#${prev.id}">Go to ${esc(prev.title)}</a></div></div></section>`;
+    return;
+  }
+  const s = S.scores[m.id];
+  V.innerHTML = `<div class="stack"><section class="sheet"><div class="sheet-in">
+    <div class="mhead"><a class="back" href="#home">← All sheets</a><span class="eyebrow">Sheet ${String(m.n).padStart(2, '0')} / 07 · ${LEVELS[m.lvl][1]}</span><h1>${esc(m.title)}</h1></div>
+    <div class="memo"><span class="eyebrow">Nuria</span><p>${esc(m.note)}</p></div>
+    <div class="chips" aria-label="Glossary terms for this sheet"><span class="eyebrow" style="align-self:center">Glossary:</span>${m.terms.map(t => `<button class="chip" data-term="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+    <div id="task"></div>
+    <div id="result"></div>
+  </div>${titleBlock([['Sheet', `${String(m.n).padStart(2, '0')} / 07`], ['Standard', `ISO 129-1 · ${m.clauses}`], ['Best', s ? `${s.best} / ${m.max}` : 'Not yet'], ['Checked by', 'Nuria']])}</section></div>`;
+  $$('.chip[data-term]').forEach(b => b.onclick = () => { G.q = b.dataset.term; G.cat = 'All'; location.hash = 'glossary'; });
+  m.run($('#task'), m);
+}
+
+function finish(m, score, extra = '') {
+  const prev = S.scores[m.id] || { best: 0, tries: 0 };
+  const first = prev.tries === 0;
+  const best = Math.max(prev.best, score);
+  const gained = best - prev.best;
+  S.scores[m.id] = { best, tries: prev.tries + 1, last: score };
+  const nb = [award('first')];
+  if (score === m.max) nb.push(award('clean'));
+  if (m.id === 'm3' && score === m.max) nb.push(award('rules'));
+  if (xp() >= RANKS[RANKS.length - 1][0]) nb.push(award('chief'));
+  if (extra && extra.badges) extra.badges.forEach(b => nb.push(award(b)));
+  const newB = nb.filter(Boolean).map(id => BADGES.find(b => b.id === id).name);
+  save(); renderBar();
+  const ok = score >= Math.ceil(m.max * PASS);
+  const idx = MISSIONS.indexOf(m), next = MISSIONS[idx + 1];
+  const nextBtn = ok && next ? `<a class="btn primary" href="#${next.id}">Next: ${esc(next.title)}</a>` : ok && !next ? `<a class="btn primary" href="#cert">Get your certificate</a>` : '';
+  $('#result').innerHTML = `<div class="result" role="status">
+    <div class="stamp ${ok ? 'ok' : 'bad'}">${ok ? 'Approved<small>for manufacture</small>' : 'Returned<small>revise and resubmit</small>'}</div>
+    <div class="stack" style="gap:10px">
+      <div><span class="score">${score}</span> <span class="muted">/ ${m.max} points</span></div>
+      <p>${gained > 0 ? `+${gained} XP added to your total.` : first ? '' : `Your best score on this sheet is still ${best}.`} ${ok ? '' : `You need ${Math.ceil(m.max * PASS)} points for approval.`}</p>
+      ${newB.length ? `<p class="newb">New badge: ${newB.join(', ')}</p>` : ''}
+      ${extra && extra.html ? extra.html : ''}
+      <div class="actions">${nextBtn}<button class="btn" id="again">Try again</button><a class="btn" href="#home">All sheets</a></div>
+    </div></div>`;
+  $('#again').onclick = () => viewMission(m);
+  $('#result').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+}
+
+/* ---------- M1: anatomy ---------- */
+function runAnatomy(el, m) {
+  const opts = shuffle(ANATOMY).sort((a, b) => a.localeCompare(b));
+  el.innerHTML = `<div class="drawing">${anatomySVG()}</div>
+    <p class="muted">Choose the name of each numbered part. Tap a number to find it on the drawing.</p>
+    <ol class="labels">${ANATOMY.map((a, i) => `<li><span class="num">${i + 1}</span><select id="an${i}" aria-label="Part ${i + 1}"><option value="">Choose a term…</option>${opts.map(o => `<option>${o}</option>`).join('')}</select><span class="fb"></span></li>`).join('')}</ol>
+    <div class="actions"><button class="btn primary" id="check">Send to the workshop</button><span class="muted" id="left"></span></div>`;
+  const hot = i => $$('.mk', el).forEach(g => g.classList.toggle('hot', +g.dataset.i === i));
+  $$('select', el).forEach((s, i) => { s.onfocus = () => hot(i); s.onmouseenter = () => hot(i); s.onchange = upd; });
+  $$('.labels .num', el).forEach((n, i) => n.onclick = () => { hot(i); $('#an' + i).focus(); });
+  $$('.mk', el).forEach(g => g.onclick = () => { const i = +g.dataset.i; hot(i); $('#an' + i).focus(); });
+  function upd() { const n = $$('select', el).filter(s => !s.value).length; $('#left', el).textContent = n ? `${n} still empty` : 'All parts labelled'; }
+  upd();
+  $('#check', el).onclick = () => {
+    let c = 0;
+    $$('.labels li', el).forEach((li, i) => {
+      const s = $('select', li), right = s.value === ANATOMY[i];
+      if (right) c++;
+      li.className = right ? 'ok' : 'bad';
+      $('.fb', li).innerHTML = right ? '<span class="ok-t">Correct</span>' : `<span class="bad-t">It is the <b>${ANATOMY[i]}</b>.</span>`;
+      s.disabled = true;
+    });
+    $('#check', el).disabled = true;
+    finish(m, c * 10);
+  };
+}
+
+/* ---------- M2: symbols ---------- */
+function runSymbols(el, m) {
+  const left = shuffle(SYMBOL_ITEMS), right = shuffle(SYMBOL_ITEMS);
+  let sel = null, done = 0, score = 0, t0 = 0, tick = null;
+  const missed = new Set();
+  el.innerHTML = `<div class="actions" style="justify-content:space-between"><p class="muted">Tap a symbol, then tap its meaning.</p><span class="timer" id="timer">0:00</span></div>
+    <div class="match"><div class="col">${left.map(([k]) => `<button class="tile" data-k="${k}" aria-label="Symbol">${SYM[k]}</button>`).join('')}</div>
+    <div class="col">${right.map(([k, d]) => `<button class="tile" data-m="${k}">${d}</button>`).join('')}</div></div>`;
+  const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+  const start = () => { if (!t0) { t0 = Date.now(); tick = setInterval(() => { const t = $('#timer'); if (!t) return clearInterval(tick); t.textContent = fmt((Date.now() - t0) / 1000); }, 250); } };
+  $$('[data-k]', el).forEach(b => b.onclick = () => { if (b.classList.contains('done')) return; start(); $$('[data-k]', el).forEach(x => x.classList.remove('sel')); b.classList.add('sel'); sel = b; });
+  $$('[data-m]', el).forEach(b => b.onclick = () => {
+    if (b.classList.contains('done')) return;
+    if (!sel) { b.classList.add('shake'); setTimeout(() => b.classList.remove('shake'), 350); return; }
+    const k = sel.dataset.k;
+    if (b.dataset.m === k) {
+      sel.classList.remove('sel'); sel.classList.add('done'); b.classList.add('done');
+      if (!missed.has(k)) score += 10;
+      sel = null; done++;
+      if (done === SYMBOL_ITEMS.length) {
+        clearInterval(tick);
+        const secs = (Date.now() - t0) / 1000, badges = [];
+        if (secs < 90) badges.push('quick');
+        if (score === m.max) badges.push('symbols');
+        finish(m, score, { badges, html: `<p class="muted">Time: ${fmt(secs)}. ${missed.size ? `First-try misses: ${missed.size}.` : 'No misses.'}</p>` });
+      }
+    } else {
+      missed.add(k);
+      [b, sel].forEach(x => { x.classList.add('shake'); setTimeout(() => x.classList.remove('shake'), 350); });
+    }
+  });
+}
+
+/* ---------- generic one-at-a-time runner ---------- */
+function runSeq(el, m, items, draw) {
+  let i = 0, score = 0;
+  const step = () => {
+    if (i >= items.length) { finish(m, score); return; }
+    el.innerHTML = `<div class="q"><div class="progress"><i style="width:${(i / items.length) * 100}%"></i></div><span class="qcount">Question ${i + 1} of ${items.length} · ${score} points</span><div id="qb"></div></div>`;
+    draw($('#qb', el), items[i], right => { if (right) score += 10; },
+      () => { i++; step(); }, i === items.length - 1);
+  };
+  step();
+}
+
+/* ---------- M3: shall / should / may ---------- */
+function runModals(el, m) {
+  runSeq(el, m, shuffle(MODAL_ITEMS), (box, [s, ans, cl], add, next, last) => {
+    const parts = s.split('___');
+    box.innerHTML = `<p class="sentence">${esc(parts[0])}<span class="gap" id="gap">?</span>${esc(parts[1])}</p>
+      <div class="opts">${['shall', 'should', 'may'].map(o => `<button class="opt big" data-o="${o}">${o}</button>`).join('')}</div><div id="fb"></div>`;
+    $$('.opt', box).forEach(b => b.onclick = () => {
+      const right = b.dataset.o === ans; add(right);
+      $$('.opt', box).forEach(x => { x.disabled = true; if (x.dataset.o === ans) x.classList.add('ok'); });
+      if (!right) b.classList.add('bad');
+      $('#gap', box).textContent = ans;
+      $('#fb', box).innerHTML = `<div class="feedback${right ? '' : ' bad'}"><b>${right ? 'Correct.' : 'Not this time.'}</b> <i>${ans}</i> = ${MODAL_MEANING[ans]}. Check it in ISO 129-1, clause <span class="mono">${cl}</span>.</div>
+        <div class="actions" style="margin-top:12px"><button class="btn primary" id="nx">${last ? 'See result' : 'Next rule'}</button></div>`;
+      $('#nx', box).onclick = next; $('#nx', box).focus();
+    });
+  });
+}
+
+/* ---------- M4: notation ---------- */
+function runNotation(el, m) {
+  runSeq(el, m, shuffle(NOTATION), (box, it, add, next, last) => {
+    const opts = shuffle(it.o.map((t, k) => ({ t, ok: k === 0 })));
+    box.innerHTML = `<p>What does this mean on a drawing?</p><div class="notation">${it.q}</div>
+      <div class="opts col1">${opts.map((o, k) => `<button class="opt" data-k="${k}">${esc(o.t)}</button>`).join('')}</div><div id="fb"></div>`;
+    $$('.opt', box).forEach(b => b.onclick = () => {
+      const right = opts[+b.dataset.k].ok; add(right);
+      $$('.opt', box).forEach(x => { x.disabled = true; if (opts[+x.dataset.k].ok) x.classList.add('ok'); });
+      if (!right) b.classList.add('bad');
+      $('#fb', box).innerHTML = `<div class="feedback${right ? '' : ' bad'}"><b>${right ? 'Correct.' : 'Not this time.'}</b> The answer is: ${esc(it.o[0])}. See clause <span class="mono">${it.cl}</span>.</div>
+        <div class="actions" style="margin-top:12px"><button class="btn primary" id="nx">${last ? 'See result' : 'Next'}</button></div>`;
+      $('#nx', box).onclick = next; $('#nx', box).focus();
+    });
+  });
+}
+
+/* ---------- M5: rule meets drawing ---------- */
+function runRules(el, m) {
+  const order = shuffle(RULES);
+  el.innerHTML = `<p class="muted">Read the eight rules. Then choose the rule that each drawing follows. Each rule is used once.</p>
+    <ul class="rules">${RULES.map(r => `<li><b>${r.id}</b>${esc(r.text)}</li>`).join('')}</ul>
+    <div class="minis">${order.map((r, i) => `<div class="mini" data-id="${r.id}"><div class="drawing">${MINI[r.id]()}</div><div class="foot"><span class="eyebrow">Detail ${i + 1}</span><select id="ru${i}" aria-label="Rule for detail ${i + 1}"><option value="">Rule…</option>${RULES.map(x => `<option value="${x.id}">${x.id}</option>`).join('')}</select></div><div class="fb"></div></div>`).join('')}</div>
+    <div class="actions"><button class="btn primary" id="check">Send to the workshop</button></div>`;
+  $('#check', el).onclick = () => {
+    let c = 0;
+    $$('.mini', el).forEach(d => {
+      const s = $('select', d), id = d.dataset.id, r = RULES.find(x => x.id === id), right = s.value === id;
+      if (right) c++;
+      d.classList.add(right ? 'ok' : 'bad'); s.disabled = true;
+      $('.fb', d).innerHTML = right ? `<span class="ok-t">Correct: rule ${id} (${r.cl})</span>` : `<span class="bad-t">It is rule ${id}: ${esc(r.text)} (${r.cl})</span>`;
+    });
+    $('#check', el).disabled = true;
+    finish(m, c * 10);
+  };
+}
+
+/* ---------- M6: spot the error ---------- */
+function runErrors(el, m) {
+  const found = new Map(); let wrong = 0, pending = null, over = false;
+  el.innerHTML = `<div class="tally"><span id="tf">Found 0 / ${ERRORS.length}</span><span id="tw">Wrong taps 0</span><span id="tj">Explained 0</span></div>
+    <div class="drawing" id="dwbox">${errorSVG()}</div>
+    <div id="why"></div>
+    <ol class="found-list" id="flist"></ol>
+    <div class="actions"><button class="btn" id="giveup">Show the ones I missed</button></div>`;
+  const s = $('svg', el), marks = $('#marks', s);
+  const inside = (e, x, y) => e.c ? Math.hypot(x - e.c[0], y - e.c[1]) <= e.c[2] + 4 : (x >= e.r[0] - 4 && x <= e.r[0] + e.r[2] + 4 && y >= e.r[1] - 4 && y <= e.r[1] + e.r[3] + 4);
+  const shape = (e, cls) => e.c ? `<circle class="${cls}" cx="${e.c[0]}" cy="${e.c[1]}" r="${e.c[2]}"/>` : `<rect class="${cls}" x="${e.r[0]}" y="${e.r[1]}" width="${e.r[2]}" height="${e.r[3]}"/>`;
+  const tally = () => { $('#tf', el).textContent = `Found ${found.size} / ${ERRORS.length}`; $('#tw', el).textContent = `Wrong taps ${wrong}`; $('#tj', el).textContent = `Explained ${[...found.values()].filter(Boolean).length}`; };
+  s.addEventListener('click', ev => {
+    if (over || pending) return;
+    const pt = s.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+    const p = pt.matrixTransform(s.getScreenCTM().inverse());
+    const e = ERRORS.find(x => !found.has(x.id) && inside(x, p.x, p.y));
+    if (!e) {
+      if (ERRORS.some(x => found.has(x.id) && inside(x, p.x, p.y))) return;
+      wrong++; marks.insertAdjacentHTML('beforeend', `<path class="miss" d="M${p.x - 5} ${p.y - 5}l10 10m0-10l-10 10"/>`); tally(); return;
+    }
+    marks.insertAdjacentHTML('beforeend', shape(e, 'hit'));
+    pending = e; found.set(e.id, false); tally();
+    const opts = shuffle([e, ...shuffle(ERRORS.filter(x => x !== e)).slice(0, 2)]);
+    $('#why', el).innerHTML = `<div class="why"><b>You found a mistake. Which rule does it break?</b><div class="opts col1">${opts.map(o => `<button class="opt" data-id="${o.id}">${esc(o.why)}</button>`).join('')}</div></div>`;
+    $('#why', el).scrollIntoView({ block: 'nearest' });
+    $$('#why .opt', el).forEach(b => b.onclick = () => {
+      const right = b.dataset.id === e.id; found.set(e.id, right);
+      $('#flist', el).insertAdjacentHTML('beforeend', `<li><span class="${right ? 'ok-t' : 'bad-t'}">${right ? 'Explained' : 'Found, wrong reason'}</span> · ${esc(e.why)} <span class="mono muted">(${e.cl})</span></li>`);
+      $('#why', el).innerHTML = ''; pending = null; tally();
+      if (found.size === ERRORS.length) end();
+    });
+  });
+  function end() {
+    over = true; $('#giveup', el).disabled = true;
+    ERRORS.filter(x => !found.has(x.id)).forEach(x => { marks.insertAdjacentHTML('beforeend', shape(x, 'reveal')); $('#flist', el).insertAdjacentHTML('beforeend', `<li><span class="bad-t">Missed</span> · ${esc(x.why)} <span class="mono muted">(${x.cl})</span></li>`); });
+    $('#why', el).innerHTML = '';
+    const expl = [...found.values()].filter(Boolean).length;
+    const badges = found.size === ERRORS.length && wrong === 0 ? ['eagle'] : [];
+    finish(m, found.size * 10 + expl * 10, { badges, html: `<p class="muted">Found ${found.size}, explained ${expl}, wrong taps ${wrong}.</p>` });
+  }
+  $('#giveup', el).onclick = () => { if (!pending) end(); };
+}
+
+/* ---------- Final: escape ---------- */
+function runEscape(el, m) {
+  const open = LOCKS.map(() => false); let tries = 0;
+  el.innerHTML = `<p>You need the standard for this one. Open ISO 129-1 through the UPV Library${LIBRARY_URL ? ` (<a href="${LIBRARY_URL}" target="_blank" rel="noopener">AENORmás</a>)` : ''}, find each number and enter it in the lock.</p>
+    <div class="dial" aria-label="Door code">${LOCKS.map((_, i) => `<span id="d${i}">·</span>`).join('')}</div>
+    <div class="locks">${LOCKS.map((l, i) => `<div class="lock" id="lk${i}"><span class="eyebrow">Lock ${i + 1}</span><p>${esc(l.q)}</p>
+      <div class="row"><input id="in${i}" inputmode="numeric" maxlength="2" aria-label="Answer for lock ${i + 1}"><button class="btn" data-i="${i}">Try</button></div><p class="muted" id="h${i}" aria-live="polite"></p></div>`).join('')}</div>`;
+  $$('.lock button', el).forEach(b => b.onclick = () => {
+    const i = +b.dataset.i, v = $('#in' + i).value.trim().replace(',', '.');
+    if (!v) return;
+    tries++;
+    if (+v === LOCKS[i].a) {
+      open[i] = true; $('#lk' + i).classList.add('open'); $('#in' + i).disabled = true; b.disabled = true;
+      $('#d' + i).textContent = LOCKS[i].a; $('#d' + i).classList.add('on'); $('#h' + i).textContent = 'Unlocked.';
+      if (open.every(Boolean)) finish(m, 100, { badges: ['escape'], html: `<p>The workshop door is open. Door code: <b class="mono">${LOCKS.map(l => l.a).join('')}</b>. Attempts: ${tries}.</p>` });
+    } else {
+      $('#h' + i).textContent = `Not ${v}. Hint: ${LOCKS[i].hint}`;
+    }
+  });
+  $$('.lock input', el).forEach((inp, i) => inp.onkeydown = e => { if (e.key === 'Enter') $(`.lock button[data-i="${i}"]`, el).click(); });
+}
+
+/* ---------- glossary ---------- */
+const G = { q: '', cat: 'All' };
+const CATS = ['All', ...new Set(GLOSSARY.map(g => g.cat))];
+const canSpeak = 'speechSynthesis' in window;
+function speak(t) {
+  try {
+    const u = new SpeechSynthesisUtterance(t.replace(/\(.*?\)/g, '').replace('/', ' or '));
+    u.lang = 'en-GB'; u.rate = 0.9; speechSynthesis.cancel(); speechSynthesis.speak(u);
+    if (!S.opened.includes(t)) { S.opened.push(t); S.listens = S.opened.length; }
+    if (S.listens >= 10 && award('ear')) renderBar();
+    save();
+  } catch (e) { /* speech not available */ }
+}
+function viewGlossary() {
+  V.innerHTML = `<div class="stack"><div class="mhead"><span class="eyebrow">${GLOSSARY.length} terms · English – Spanish</span><h1>Glossary</h1><p class="muted" style="max-width:62ch">Every term used in the missions, with the Spanish equivalent, a plain-English definition, an example and the clause where you can find it in ISO 129-1.${canSpeak ? ' Tap the speaker to hear the English pronunciation.' : ''}</p></div>
+    <div class="gtools"><input class="search" id="gq" type="search" placeholder="Search in English or Spanish…" aria-label="Search the glossary" value="${esc(G.q)}">
+    <div class="chips" role="group" aria-label="Category">${CATS.map(c => `<button class="chip" data-c="${esc(c)}" aria-pressed="${c === G.cat}">${esc(c)}</button>`).join('')}</div><span class="gcount" id="gc"></span></div>
+    <div id="glist" class="stack"></div></div>`;
+  $('#gq').oninput = e => { G.q = e.target.value; list(); };
+  $$('[data-c]').forEach(b => b.onclick = () => { G.cat = b.dataset.c; $$('[data-c]').forEach(x => x.setAttribute('aria-pressed', x === b)); list(); });
+  list();
+  if (G.q) { const f = $('#glist .term'); if (f) setTimeout(() => f.scrollIntoView({ block: 'center' }), 50); }
+}
+function list() {
+  const q = G.q.trim().toLowerCase();
+  const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const hl = s => { if (!q) return esc(s); const i = norm(s).indexOf(norm(q)); return i < 0 ? esc(s) : esc(s.slice(0, i)) + '<mark>' + esc(s.slice(i, i + q.length)) + '</mark>' + esc(s.slice(i + q.length)); };
+  const items = GLOSSARY.filter(g => (G.cat === 'All' || g.cat === G.cat) && (!q || norm(g.en + ' ' + g.es + ' ' + g.def).includes(norm(q))));
+  $('#gc').textContent = `${items.length} term${items.length === 1 ? '' : 's'}`;
+  const cats = [...new Set(items.map(g => g.cat))];
+  $('#glist').innerHTML = items.length ? cats.map(c => `<section class="gcat"><h2>${esc(c)}</h2><div class="gitems">${items.filter(g => g.cat === c).map(g => `
+    <article class="term"><header>${g.sym ? SYM[g.sym] : ''}<h3>${hl(g.en)}</h3>${canSpeak ? `<button class="speak" data-say="${esc(g.en)}" aria-label="Hear ${esc(g.en)}"><svg viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6L8 10H4zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg></button>` : ''}</header>
+    <span class="es" lang="es">${hl(g.es)}</span><p>${esc(g.def)}</p><p class="ex"><i>${esc(g.ex)}</i></p>${g.cl !== '—' ? `<span class="cl">ISO 129-1 · ${esc(g.cl)}</span>` : ''}</article>`).join('')}</div></section>`).join('')
+    : `<p>No term matches “${esc(G.q)}”. Try a shorter word, or search in Spanish.</p>`;
+  $$('.speak').forEach(b => b.onclick = () => speak(b.dataset.say));
+}
+
+/* ---------- briefing ---------- */
+function viewBriefing() {
+  V.innerHTML = `<section class="sheet"><div class="sheet-in"><div class="prose">
+    <span class="eyebrow">Read this before sheet 01</span><h1>Briefing: the language of standards</h1>
+    <p>ISO 129-1 tells you how to show dimensions and tolerances on technical drawings. It is written in a very precise kind of English. Three things help you read it.</p>
+    <h2>1. Shall, should and may</h2>
+    <div class="tbl"><table><thead><tr><th>Word</th><th>Meaning</th><th>Spanish</th><th>Example from ISO 129-1</th></tr></thead><tbody>
+      <tr><td><b>shall</b></td><td>A requirement. You must do it.</td><td>obligatorio</td><td>Dimension lines <b>shall</b> be continuous narrow lines. (5.3)</td></tr>
+      <tr><td><b>shall not</b></td><td>A prohibition.</td><td>prohibido</td><td>Centre lines <b>shall not</b> be used as dimension lines. (5.3)</td></tr>
+      <tr><td><b>should</b></td><td>A recommendation. Good practice.</td><td>recomendado</td><td>Extension lines <b>should not</b> be drawn between views. (5.5)</td></tr>
+      <tr><td><b>may</b></td><td>A permission. You can choose.</td><td>permitido</td><td>Arrowheads <b>may</b> be placed outside the extension lines. (5.3)</td></tr>
+    </tbody></table></div>
+    <h2>2. The passive voice</h2>
+    <p>Standards describe what happens to the drawing, not who does it. Look for <i>be + past participle</i>:</p>
+    <p class="phrase">Dimensions shall be <b>placed</b> in the view that shows the feature most clearly.<br>The value is <b>underlined</b> when the feature is not drawn to scale.</p>
+    <h2>3. Citing a clause</h2>
+    <p>The standard is divided into numbered clauses. When you justify a decision, name the clause:</p>
+    <p class="phrase">According to clause 4.1.1, the decimal marker shall be a comma.<br>As stated in 7.3.1, a radius has only one terminator.<br>This follows 5.4.1, which allows only one type of arrowhead per drawing.</p>
+    <h2>How to read the document</h2>
+    <ul><li><b>Clause 3</b> defines key terms. <b>Clauses 4–5</b> give the basic rules and the elements of a dimension. <b>Clause 6</b> covers tolerances, <b>clause 7</b> special cases (radii, spheres, chamfers…), <b>clause 8</b> the arrangement of dimensions and <b>clause 9</b> notes.</li>
+    <li>A <b>NOTE</b> gives extra information. It is not a requirement.</li>
+    <li>Annex A is <b>normative</b> (it contains rules). Annexes B and C are <b>informative</b>.</li>
+    <li>The figures carry half of the meaning. Read each rule together with the figure it cites.</li></ul>
+    <p>Full text: UPV Library${LIBRARY_URL ? `, <a href="${LIBRARY_URL}" target="_blank" rel="noopener">AENORmás</a>` : ' (AENORmás)'}. Search for “UNE-EN ISO 129-1:2019”.</p>
+    <div class="actions"><a class="btn primary" href="#m1">Start sheet 01</a><a class="btn" href="#glossary">Open the glossary</a></div>
+  </div></div></section>`;
+}
+
+/* ---------- final task ---------- */
+function viewFinal() {
+  const checks = [
+    ['Every dimension is shown once, in the view that shows the feature most clearly.', '4.1.1, 4.2'],
+    ['Decimal values use a comma.', '4.1.1'],
+    ['Values sit above the dimension line and read from the bottom or the right.', '4.1.1, 5.7.2'],
+    ['One type of arrowhead on the whole drawing.', '5.4.1'],
+    ['Extension lines extend about 8× the line width beyond the dimension line.', '5.5'],
+    ['⌀ for circles and arcs over 180°; R for arcs under 180°, with one terminator.', '7.2, 7.3'],
+    ['Angles show their unit (°).', '4.3'],
+    ['Repeated features use n× (e.g. 4× ⌀6).', '4.1.2'],
+    ['Auxiliary dimensions, if any, are in parentheses.', '4.1.4'],
+    ['At least one tolerance, written correctly.', '6.2, 6.3']
+  ];
+  V.innerHTML = `<section class="sheet"><div class="sheet-in"><div class="prose">
+    <span class="eyebrow">Final task · Hand in on PoliformaT</span><h1>Dimension your own product</h1>
+    <p>Choose a simple part from your own design project: a bracket, a handle, a clip, a knob. Make a dimensioned drawing that the workshop can manufacture, and write a short technical note in English that explains your choices.</p>
+    <h2>What to hand in</h2>
+    <ol><li><b>The drawing.</b> At least two views, with all the dimensions needed to make the part. Use at least three different types of dimension (for example a diameter, a radius and an angle), and at least one tolerance.</li>
+    <li><b>A technical note</b> (150–200 words) explaining four of your decisions, each with a reference to a clause of ISO 129-1.</li></ol>
+    <h2>Checklist before you submit</h2>
+    <ul class="check">${checks.map(([t, c], i) => `<li><label><input type="checkbox" id="fc${i}"><span>${esc(t)} <span class="mono muted">(${c})</span></span></label></li>`).join('')}</ul>
+    <h2>Writing frame for the note</h2>
+    <p class="phrase">The part is a … for … . It is shown in … views.<br>
+    I used running dimensioning / chain dimensioning because … (clause 8.x).<br>
+    The hole is dimensioned as 2× ⌀6 because … . According to clause 4.1.2, …<br>
+    The corner is dimensioned with a radius because the arc is less than 180° (7.3).<br>
+    The length 40 ±0,1 is toleranced because … . As stated in 6.2, …</p>
+    <h2>How it will be assessed</h2>
+    <div class="tbl"><table><thead><tr><th>Criterion</th><th>What we look for</th></tr></thead><tbody>
+      <tr><td>Correct use of the standard</td><td>The drawing follows the rules in the checklist.</td></tr>
+      <tr><td>Completeness</td><td>The part can be made from the drawing, with no missing or repeated dimensions.</td></tr>
+      <tr><td>Technical vocabulary</td><td>Terms from the glossary are used accurately.</td></tr>
+      <tr><td>Justification</td><td>Each decision is explained and linked to a clause, with shall / should / may used correctly.</td></tr>
+    </tbody></table></div>
+    <div class="actions"><a class="btn primary" href="#glossary">Open the glossary</a><a class="btn" href="#briefing">Useful phrases</a></div>
+  </div></div></section>`;
+}
+
+/* ---------- certificate ---------- */
+function code(name, v) {
+  let h = 2166136261; const s = name.trim().toLowerCase().replace(/\s+/g, ' ') + '|' + v + '|iso129';
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return '129-' + (h >>> 0).toString(36).toUpperCase().padStart(7, '0').slice(-6);
+}
+function viewCert() {
+  const v = xp(), r = rank(v), done = passed('esc');
+  if (!done) {
+    const left = MISSIONS.filter(m => !passed(m.id));
+    V.innerHTML = `<section class="sheet"><div class="sheet-in prose"><span class="eyebrow">Certificate</span><h1>Not yet</h1><p>Your certificate is ready when the workshop is open. Sheets still to approve: <b>${left.map(m => esc(m.title)).join(', ')}</b>.</p><div class="actions"><a class="btn primary" href="#${left[0].id}">Go to ${esc(left[0].title)}</a></div></div></section>`;
+    return;
+  }
+  const draw = () => {
+    const n = S.name.trim();
+    $('#cbox').innerHTML = n ? `<div class="cert"><div class="inner">
+      <span class="eyebrow">Studio 129 · Certificate of completion</span>
+      <p>This certifies that</p><div class="name">${esc(n)}</div>
+      <p style="max-width:56ch">has completed all seven sheets on dimensioning technical drawings in English according to <b>ISO 129-1:2018</b>, and has opened the locked workshop.</p>
+      <div class="tally"><span>Rank: <b>${r.name}</b></span><span>XP: <b>${v} / ${MAXXP}</b></span><span>Badges: <b>${S.badges.length} / ${BADGES.length}</b></span></div>
+      <span class="code" id="ccode">${code(n, v)}</span>
+      <div class="actions"><button class="btn primary" id="copy">Copy for PoliformaT</button><span id="copied" class="muted" aria-live="polite"></span></div>
+    </div></div>` : '';
+    if (n) $('#copy').onclick = () => {
+      const txt = `Studio 129 – ISO 129-1 certificate\nName: ${n}\nRank: ${r.name}\nXP: ${v}/${MAXXP}\nBadges: ${S.badges.length}/${BADGES.length}\nCode: ${code(n, v)}`;
+      const ok = () => $('#copied').textContent = 'Copied. Paste it into the PoliformaT task.';
+      const fail = () => { const range = document.createRange(); range.selectNodeContents($('#cbox .inner')); getSelection().removeAllRanges(); getSelection().addRange(range); $('#copied').textContent = 'Copy did not work here. The certificate text is selected: copy it or take a screenshot.'; };
+      try { navigator.clipboard.writeText(txt).then(ok, fail); } catch (e) { fail(); }
+    };
+  };
+  V.innerHTML = `<div class="stack"><div class="mhead"><span class="eyebrow">The workshop is open</span><h1>Your certificate</h1><p class="muted" style="max-width:60ch">Type your full name as it appears on PoliformaT. Then copy the certificate text (or take a screenshot) and paste it into the task your teacher has set.</p></div>
+    <div class="field"><label for="cname" class="eyebrow">Full name</label><input id="cname" autocomplete="name" value="${esc(S.name)}"></div><div id="cbox"></div></div>`;
+  $('#cname').oninput = e => { S.name = e.target.value; save(); draw(); };
+  draw();
+}
+
+/* ---------- teacher tools (not linked from the site) ---------- */
+function viewTeacher() {
+  V.innerHTML = `<section class="sheet"><div class="sheet-in prose"><span class="eyebrow">Teacher tools</span><h1>Check a certificate</h1>
+    <p>Enter the student's name and XP exactly as on their certificate to recalculate the code.</p>
+    <div class="field"><label class="eyebrow" for="tn">Name</label><input id="tn"></div>
+    <div class="field"><label class="eyebrow" for="tx">XP</label><input id="tx" inputmode="numeric"></div>
+    <p>Expected code: <span class="code" id="tc">—</span></p>
+    <h2>Preview mode</h2><p>Unlock every sheet in this browser, so you can try any mission without playing the earlier ones.</p>
+    <div class="actions"><button class="btn" id="tu">${S.unlockAll ? 'Lock sheets again' : 'Unlock all sheets'}</button></div></div></section>`;
+  const upd = () => { const n = $('#tn').value, x = $('#tx').value.trim(); $('#tc').textContent = n && x ? code(n, +x) : '—'; };
+  $('#tn').oninput = upd; $('#tx').oninput = upd;
+  $('#tu').onclick = () => { S.unlockAll = !S.unlockAll; save(); viewTeacher(); };
+}
+
+/* ---------- router ---------- */
+function render() {
+  const h = location.hash.slice(1) || 'home';
+  const m = MISSIONS.find(x => x.id === h);
+  if (m) viewMission(m);
+  else if (h === 'glossary') viewGlossary();
+  else if (h === 'briefing') viewBriefing();
+  else if (h === 'final') viewFinal();
+  else if (h === 'cert') viewCert();
+  else if (h === 'teacher') viewTeacher();
+  else viewHome();
+  renderBar();
+  if (h !== 'glossary' || !G.q) window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', render);
+render();
+})();
+</script>
+</body>
+</html>
