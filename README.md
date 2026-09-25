@@ -2,7 +2,7 @@
 
 A gamified practice site for reading **ISO 129-1:2018** (*Technical product documentation — Presentation of dimensions and tolerances*) in English. Made for Industrial Design students at the Escuela Politécnica Superior de Alcoi (UPV).
 
-Students work through seven "sheets" at a fictional design studio, earn XP and badges, and use a searchable English–Spanish glossary. The final sheet requires the standard itself, which students access through the UPV Library (AENORmás).
+Students work through nine "sheets" at a fictional design studio, earn XP and badges, and use a searchable English–Spanish glossary. The final sheet requires the standard itself, which students access through the UPV Library (AENORmás).
 
 The site contains only short paraphrases of the rules and original drawings. It does not reproduce the standard.
 

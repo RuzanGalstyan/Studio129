@@ -278,6 +278,21 @@ mark{background:color-mix(in srgb,var(--xp) 35%,transparent);color:inherit}
 .field input{padding:10px 12px;border:1.5px solid var(--ink);background:var(--sheet);border-radius:2px}
 .foot{font-size:.82rem;color:var(--muted);border-top:1px solid var(--line);padding-top:16px;display:flex;flex-direction:column;gap:6px}
 .linkbtn{background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:.82rem}
+
+/* ---------- arrangements / special cases ---------- */
+.dw .cw{fill:none;stroke:var(--ink);stroke-width:2.6;stroke-dasharray:16 4 2 4}
+#task h2{font-size:1.4rem;border-bottom:1.5px solid var(--ink);padding-bottom:4px;margin-top:8px}
+#task{display:flex;flex-direction:column;gap:14px}
+.coord{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:14px;align-items:start}
+.coord .tbl table{min-width:0}
+@media (max-width:640px){.coord{grid-template-columns:1fr}}
+.drawing.narrow{max-width:560px}
+.nqs{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:10px}
+.nq label{display:block}
+.nq input{width:90px;padding:8px;font-family:var(--mono);font-size:1.1rem;border:1.5px solid var(--line);background:var(--sheet);margin-top:4px;border-radius:2px}
+.nq.ok input{border-color:var(--ok);background:var(--ok-soft)}
+.nq.bad input{border-color:var(--bad);background:var(--bad-soft)}
+.nq .fb{display:block;font-size:.88rem;margin-top:4px}
 </style>
 </head>
 <body>
@@ -378,6 +393,12 @@ const GLOSSARY_RAW = [
   ['equally spaced features', 'elementos equidistantes', 'Arrangements', 'Features with the same spacing: 17× 18 (=306) means 17 spaces of 18, total 306.', 'The total in parentheses is an auxiliary dimension.', '7.8.1'],
   ['symmetrical part', 'pieza simétrica', 'Arrangements', 'A part that can be drawn in half or in a quarter. Symmetrical features are dimensioned only once.', '6× R8 covers all the rounded corners.', '4.1.6, 7.9'],
 
+  ['line of symmetry', 'eje de simetría', 'Arrangements', 'The centre line that divides a symmetrical part into two equal halves. Usually it is not dimensioned.', 'Only the left half is drawn; the line of symmetry is on the right.', '7.9'],
+  ['symmetry symbol', 'símbolo de simetría', 'Arrangements', 'Two short parallel lines at each end of the line of symmetry. They show that only half or a quarter of the part is drawn.', 'Draw the symmetry symbol at both ends of the axis.', '7.9'],
+  ['polar coordinates', 'coordenadas polares', 'Arrangements', 'Positions given by a radius and an angle from an origin, measured counter-clockwise.', 'The holes are located with polar coordinates.', '8.5.2'],
+  ['semicircle', 'semicírculo', 'Types of dimension', 'Half a circle, for example the end of a slot. Its radius can be shown as R with no value when it comes from other dimensions.', 'The slot has a semicircle at each end.', '7.3.3'],
+  ['restricted area', 'zona restringida', 'Types of dimension', 'A limited part of a surface where a requirement applies. It is shown with a wide long-dashed dotted line.', 'Only the restricted area is hardened.', '7.17', '', true],
+
   ['view', 'vista', 'Drawing basics', 'A projection of the part seen from one direction.', 'Put each dimension in the view that shows the feature most clearly.', '4.2'],
   ['section', 'corte (sección)', 'Drawing basics', 'A view of the part cut by a plane. The cut surface is hatched.', 'The internal diameters are dimensioned in the section.', '4.2'],
   ['hidden feature', 'elemento oculto', 'Drawing basics', 'A feature you cannot see in the view (dashed lines). Avoid dimensioning it.', 'Do not dimension hidden features unless it is absolutely necessary.', '4.2'],
@@ -476,6 +497,38 @@ const LOCKS = [
   { q: 'Clause 5.7.2: the minimum space between the dimension line and the bottom of the characters is how many times the line width?', a: 2, hint: 'Look for “a minimum of”.' }
 ];
 
+/* Mission 7: Arrangements (clause 8) */
+const ARR_TYPES = ['chain dimensioning', 'parallel dimensioning', 'running dimensioning', 'coordinate dimensioning'];
+const ARR_CLAUSE = { 'chain dimensioning': '8.2', 'parallel dimensioning': '8.3', 'running dimensioning': '8.4', 'coordinate dimensioning': '8.5' };
+/* Hole positions for the coordinate plate: [position, X, Y, d] (our own values) */
+const COORD = [[1, 15, 10, '⌀6'], [2, 65, 10, '⌀6'], [3, 40, 25, '⌀12'], [4, 15, 40, '⌀6'], [5, 65, 40, '⌀6']];
+const COORD_Q = [
+  { q: 'What is the X coordinate of hole 3?', a: 40, how: 'Read row 3 of the table, column X.' },
+  { q: 'Which hole has the largest diameter? (Write its number.)', a: 3, how: 'Look at column d: only hole 3 is ⌀12.' },
+  { q: 'What is the horizontal distance between the centres of holes 1 and 2?', a: 50, how: 'X of hole 2 minus X of hole 1: 65 − 15 = 50.' },
+  { q: 'What is the vertical distance between the centres of holes 2 and 5?', a: 30, how: 'Y of hole 5 minus Y of hole 2: 40 − 10 = 30.' }
+];
+/* Running dimensions on the second drawing: features A, B, C */
+const RUN_VALUES = [['A', 15], ['B', 40], ['C', 72]];
+const RUN_Q = [
+  { q: 'How far is hole C from the origin?', a: 72, how: 'Running dimensions are all measured from the origin symbol, so read the value at C: 72.' },
+  { q: 'What is the distance between holes B and C?', a: 32, how: 'Both are measured from the origin: 72 − 40 = 32.' }
+];
+
+/* Mission 8: Special cases. The first option is correct; d = drawing key in app.js */
+const SPECIAL = [
+  { d: 'sym', q: 'What do the two short parallel lines at each end of the centre line mean?', o: ['The part is symmetrical about this line, so only half of it is drawn', 'The centre line is very important', 'The part must be cut along this line', 'The two halves have different tolerances'], cl: '7.9' },
+  { d: 'half', q: 'In this half view, why does the dimension line have only one arrowhead?', o: ['It extends past the axis of symmetry, so the second terminator is left out', 'The drawing is not finished', 'It is an auxiliary dimension', 'Every linear dimension has one arrowhead'], cl: '7.9' },
+  { d: 'corners', q: 'What does 4× R8 tell the workshop?', o: ['All four corners have a radius of 8, dimensioned only once', 'One corner has a radius of 32', 'One corner has a radius of 8 and the others of 4', 'There are four holes with a diameter of 8'], cl: '7.9, 4.1.2' },
+  { d: null, q: 'Complete the rule in clause 7.9: “Usually, the line of symmetry of features ___ be dimensioned.”', o: ['shall not', 'shall', 'may', 'should'], cl: '7.9' },
+  { d: 'slotR', q: 'The radius at the end of this slot has no value. Why is that correct?', o: ['The radius can be derived from other dimensions: it is half the width of the slot', 'The workshop can choose any radius', 'The value was forgotten', 'R without a value means R1'], cl: '7.3.3' },
+  { d: 'slotR8', q: 'Here the end of the slot is marked R(8). What do the parentheses mean?', o: ['The radius is given for information only, as an auxiliary dimension', 'The radius is 8 with a tolerance', 'The radius is not drawn to scale', 'The radius is theoretically exact'], cl: '7.3.3, 4.1.4' },
+  { d: 'restricted', q: 'What does the wide long-dashed dotted line next to the shaft show?', o: ['A restricted area: a requirement applies only to that part of the surface', 'A hidden edge', 'The axis of the shaft', 'A part of the shaft that will be cut off'], cl: '7.17' },
+  { d: 'between', q: 'What does “Chrome plated A ↔ B” mean?', o: ['The shaft is chrome plated only from point A to point B', 'Only points A and B are chrome plated', 'A and B are two different parts', 'The plating is A mm thick and B mm long'], cl: '7.5' },
+  { d: null, q: 'A flag note indicator is attached to a hole. Where must the same indicator appear again?', o: ['In the note area, preferably close to the title block, next to the note', 'On every view of the drawing', 'Nowhere: it appears only once', 'In a separate document'], cl: '9.1' },
+  { d: null, q: 'When do you use a flag note instead of a general note?', o: ['When the note applies only to specific features or dimensions', 'When the note applies to the whole drawing', 'When the note is very long', 'When the note is written in another language'], cl: '9.1' }
+];
+
 /* ============ STUDIO 129: app ============ */
 (function () {
 'use strict';
@@ -564,6 +617,40 @@ const MINI = {
   H: () => svg('0 0 200 110', `<rect class="ol" x="40" y="44" width="120" height="44"/>${L(40, 40, 40, 12)}${L(160, 40, 160, 12)}${dimH(40, 160, 20, '30 ±0,1')}`)
 };
 
+
+/* Mission 7 drawings: the same plate dimensioned four ways */
+const PLATE = `<rect class="ol" x="30" y="60" width="200" height="70"/>${[70, 120, 190].map(x => `<circle class="ol" cx="${x}" cy="95" r="6"/>${L(x, 83, x, 107, 'cl')}${L(x - 12, 95, x + 12, 95, 'cl')}`).join('')}`;
+const ARR_D = {
+  'chain dimensioning': () => svg('0 0 260 140', `${PLATE}${L(30, 56, 30, 26)}${[70, 120, 190].map(x => L(x, 81, x, 26)).join('')}${dimH(30, 70, 32, '20')}${dimH(70, 120, 32, '25')}${dimH(120, 190, 32, '35')}`),
+  'parallel dimensioning': () => svg('0 -8 260 148', `${PLATE}${L(30, 56, 30, 6)}${L(70, 81, 70, 44)}${L(120, 81, 120, 26)}${L(190, 81, 190, 8)}${dimH(30, 70, 50, '20')}${dimH(30, 120, 32, '45')}${dimH(30, 190, 14, '80')}`),
+  'running dimensioning': () => svg('0 0 260 140', `${PLATE}${L(30, 56, 30, 28)}${[70, 120, 190].map(x => L(x, 81, x, 28)).join('')}${L(30, 36, 190, 36)}<circle class="bg" cx="30" cy="36" r="4"/>${[[70, '20'], [120, '45'], [190, '80']].map(([x, v]) => ah(x, 36, 0) + T(x - 4, 30, v, { a: 'end' })).join('')}${T(24, 30, '0', { a: 'end' })}`),
+  'coordinate dimensioning': () => svg('0 0 260 140', `${PLATE}<circle class="bg" cx="30" cy="130" r="4"/>${L(34, 136, 58, 136)}${ah(60, 136, 0)}${L(24, 126, 24, 104)}${ah(24, 102, -P / 2)}${T(64, 140, 'X', { a: 'start', s: 11 })}${T(24, 96, 'Y', { s: 11 })}${[[70, 76, '20; 20'], [120, 121, '45; 20'], [190, 76, '80; 20']].map(([x, y, t]) => T(x, y, t, { s: 12 })).join('')}`)
+};
+function coordSVG() {
+  const px = x => 40 + 3 * x, py = y => 180 - 3 * y;
+  return svg('0 0 300 200', `<rect class="ol" x="40" y="30" width="240" height="150"/>
+    ${COORD.map(([n, x, y, d]) => { const r = d === '⌀12' ? 18 : 9; return `<circle class="ol" cx="${px(x)}" cy="${py(y)}" r="${r}"/>${L(px(x) - r - 5, py(y), px(x) + r + 5, py(y), 'cl')}${L(px(x), py(y) - r - 5, px(x), py(y) + r + 5, 'cl')}${T(px(x) + r + 4, py(y) - r - 1, n, { a: 'start', s: 14 })}`; }).join('')}
+    <circle class="bg" cx="40" cy="180" r="4"/>${L(44, 180, 70, 180)}${ah(72, 180, 0)}${L(40, 176, 40, 150)}${ah(40, 148, -P / 2)}${T(76, 184, 'X', { a: 'start', s: 12 })}${T(46, 150, 'Y', { a: 'start', s: 12 })}`);
+}
+function runSVG() {
+  const px = v => 30 + 2.5 * v;
+  return svg('0 0 260 130', `<rect class="ol" x="30" y="55" width="210" height="60"/>
+    ${RUN_VALUES.map(([n, v]) => `<circle class="ol" cx="${px(v)}" cy="85" r="7"/>${L(px(v) - 11, 85, px(v) + 11, 85, 'cl')}${L(px(v), 74, px(v), 96, 'cl')}${T(px(v), 110, n, { s: 13 })}${L(px(v), 72, px(v), 22)}${ah(px(v), 30, 0)}${T(px(v) - 4, 24, v, { a: 'end' })}`).join('')}
+    ${L(30, 51, 30, 22)}${L(30, 30, px(72), 30)}<circle class="bg" cx="30" cy="30" r="4"/>${T(24, 24, '0', { a: 'end' })}`);
+}
+
+/* Mission 8 drawings */
+const HALF = `<path class="ol" d="M170 30 L82 30 Q70 30 70 42 L70 108 Q70 120 82 120 L170 120"/><path class="ol" d="M170 60 A15 15 0 0 0 170 90"/>${L(170, 16, 170, 134, 'cl')}${L(140, 75, 170, 75, 'cl')}${L(162, 18, 178, 18)}${L(162, 23, 178, 23)}${L(162, 127, 178, 127)}${L(162, 132, 178, 132)}`;
+const SPECIAL_D = {
+  sym: () => svg('0 0 260 150', HALF),
+  half: () => svg('0 0 260 165', `${HALF}${L(70, 124, 70, 158)}${L(70, 150, 186, 150)}${ah(70, 150, P)}${T(128, 145, '160')}`),
+  corners: () => { const a = Math.atan2(33.5 - 14, 206.5 - 228); return svg('0 0 300 140', `<path class="ol" d="M62 30 L198 30 A12 12 0 0 1 210 42 L210 108 A12 12 0 0 1 198 120 L62 120 A12 12 0 0 1 50 108 L50 42 A12 12 0 0 1 62 30 Z"/>${L(206.5, 33.5, 228, 14)}${ah(206.5, 33.5, a)}${L(228, 14, 282, 14)}${T(232, 10, '4× R8', { a: 'start' })}`); },
+  slotR: () => svg('0 0 270 130', `<path class="ol" d="M90 45 L190 45 A20 20 0 0 1 190 85 L90 85 A20 20 0 0 1 90 45 Z"/>${L(60, 65, 220, 65, 'cl')}${L(90, 55, 90, 75, 'cl')}${L(190, 55, 190, 75, 'cl')}${L(214, 45, 258, 45)}${L(214, 85, 258, 85)}${dimV(250, 45, 85, '16')}${L(90, 65, 75.9, 50.9)}${ah(75.9, 50.9, -3 * P / 4)}${T(66, 44, 'R', { a: 'end' })}${L(90, 89, 90, 116)}${L(190, 89, 190, 116)}${dimH(90, 190, 110, '40')}`),
+  slotR8: () => svg('0 0 270 130', `<path class="ol" d="M90 45 L190 45 A20 20 0 0 1 190 85 L90 85 A20 20 0 0 1 90 45 Z"/>${L(60, 65, 220, 65, 'cl')}${L(90, 55, 90, 75, 'cl')}${L(190, 55, 190, 75, 'cl')}${L(214, 45, 258, 45)}${L(214, 85, 258, 85)}${dimV(250, 45, 85, '16')}${L(90, 65, 75.9, 50.9)}${ah(75.9, 50.9, -3 * P / 4)}${T(70, 44, 'R(8)', { a: 'end' })}${L(90, 89, 90, 116)}${L(190, 89, 190, 116)}${dimH(90, 190, 110, '40')}`),
+  restricted: () => svg('0 0 260 120', `<rect class="ol" x="30" y="60" width="200" height="40"/>${L(22, 80, 238, 80, 'cl')}<line class="cw" x1="100" y1="53" x2="180" y2="53"/>${L(30, 56, 30, 14)}${L(100, 49, 100, 14)}${L(180, 49, 180, 14)}${dimH(30, 100, 22, '35')}${dimH(100, 180, 22, '40')}`),
+  between: () => svg('0 0 260 135', `<rect class="ol" x="30" y="50" width="200" height="40"/>${L(22, 70, 238, 70, 'cl')}${L(80, 26, 80, 50)}${ah(80, 50, P / 2)}${T(80, 22, 'A', { s: 16 })}${L(190, 26, 190, 50)}${ah(190, 50, P / 2)}${T(190, 22, 'B', { s: 16 })}${T(130, 122, 'Chrome plated  A ↔ B')}`)
+};
+
 /* ---------- missions ---------- */
 const MISSIONS = [
   { id: 'm1', lvl: 1, n: 1, title: 'Anatomy of a dimension', short: 'Name the ten parts of a dimensioned drawing.', max: 100, items: '10 labels',
@@ -584,13 +671,20 @@ const MISSIONS = [
   { id: 'm6', lvl: 3, n: 6, title: 'Spot the error', short: 'Find six mistakes on a real bracket drawing and explain them.', max: 120, items: '6 errors',
     note: 'An intern sent me this bracket. It has six mistakes. Tap each one, then tell me which rule it breaks. Careful: wrong taps are noted.',
     terms: ['decimal marker', 'angular dimension', 'arrowhead', 'diameter', 'dimensional value'], clauses: '4.1.1, 4.3, 5.4.1, 5.7.2, 7.2', run: runErrors },
-  { id: 'esc', lvl: 4, n: 7, title: 'The locked workshop', short: 'Open the four locks with numbers hidden in the standard.', max: 100, items: '4 locks',
+  { id: 'm7', lvl: 4, n: 7, title: 'Arrangements', short: 'Name four ways of arranging dimensions and read positions from a coordinate table.', max: 100, items: '10 tasks',
+    note: 'A new client sends drawings made in different ways. Tell me which method each drawing uses, then read the hole positions for the CNC operator.',
+    terms: ['chain dimensioning', 'parallel dimensioning', 'running dimensioning', 'coordinate dimensioning', 'origin symbol'], clauses: '8.2–8.5', run: runArrangements },
+  { id: 'm8', lvl: 4, n: 8, title: 'Special cases', short: 'Symmetrical parts, semicircles, restricted areas, “between” and flag notes.', max: 100, items: '10 questions',
+    note: 'These details confuse every new designer. Half views, slots, surfaces that are only partly treated, notes for one feature. Show me you can read them.',
+    terms: ['symmetrical part', 'symmetry symbol', 'semicircle', 'restricted area', 'between', 'flag note'], clauses: '7.3.3, 7.5, 7.9, 7.17, 9.1', run: runSpecial },
+  { id: 'esc', lvl: 5, n: 9, title: 'The locked workshop', short: 'Open the four locks with numbers hidden in the standard.', max: 100, items: '4 locks',
     note: 'I have locked the workshop. The code is in ISO 129-1 itself. Open the standard, find the four numbers and you are in.',
     terms: ['arrowhead', 'extension line', 'dimensional value'], clauses: '5.4.1, 5.5, 5.7.2, Annex A', run: runEscape }
 ];
-const LEVELS = { 1: ['Level 1', 'The apprentice desk'], 2: ['Level 2', 'The drawing office'], 3: ['Level 3', 'The workshop floor'], 4: ['Final', 'Escape the workshop'] };
+const LEVELS = { 1: ['Level 1', 'The apprentice desk'], 2: ['Level 2', 'The drawing office'], 3: ['Level 3', 'The workshop floor'], 4: ['Level 4', 'The production office'], 5: ['Final', 'Escape the workshop'] };
 const MAXXP = MISSIONS.reduce((a, m) => a + m.max, 0);
-const RANKS = [[0, 'Apprentice'], [150, 'Draughtsperson'], [350, 'Designer'], [550, 'Senior Designer'], [720, 'Chief Designer']];
+const RANKS = [[0, 'Apprentice'], [200, 'Draughtsperson'], [450, 'Designer'], [700, 'Senior Designer'], [900, 'Chief Designer']];
+const TOTAL = String(MISSIONS.length).padStart(2, '0');
 
 const BADGES = [
   { id: 'first', name: 'First sheet', d: 'Finish your first mission.', g: 'M12 6v12M8 10l4-4 4 4' },
@@ -639,7 +733,7 @@ function viewHome() {
       <span class="eyebrow">Technical English · ISO 129-1:2018 · Dimensions and tolerances</span>
       <h1>Welcome to Studio&nbsp;129</h1>
       <p>You are a new junior designer at a small product design studio. Every drawing you make goes to the workshop before anything is manufactured, and the workshop follows <b>ISO 129-1</b>, the international standard for showing dimensions on technical drawings.</p>
-      <div class="memo"><span class="eyebrow">Note from Nuria, workshop manager</span><p>If a drawing breaks the standard, I send it back. Get through the seven sheets, open my workshop and you will get your certificate.</p></div>
+      <div class="memo"><span class="eyebrow">Note from Nuria, workshop manager</span><p>If a drawing breaks the standard, I send it back. Get through all ${MISSIONS.length} sheets, open my workshop and you will get your certificate.</p></div>
       <div class="actions"><a class="btn primary" href="#${nextM.id}">${started ? 'Continue' : 'Start'}: ${esc(nextM.title)}</a><a class="btn" href="#briefing">Read the briefing</a></div>
     </div>
     <div class="ranks" aria-label="Ranks">
@@ -648,7 +742,7 @@ function viewHome() {
     </div></div></div>
     ${titleBlock([['Studio', 'Studio 129'], ['Standard', 'ISO 129-1:2018'], ['Designer', S.name ? esc(S.name) : 'New starter'], ['XP', `${v} / ${MAXXP}`]])}
   </section>`;
-  for (const lv of [1, 2, 3, 4]) {
+  for (const lv of [1, 2, 3, 4, 5]) {
     const ms = MISSIONS.filter(m => m.lvl === lv);
     html += `<section class="level"><div class="level-head"><span class="eyebrow">${LEVELS[lv][0]}</span><h2>${LEVELS[lv][1]}</h2></div><div class="cards">`;
     for (const m of ms) {
@@ -656,7 +750,7 @@ function viewHome() {
       const st = !ul ? ['lock', 'Locked'] : passed(m.id) ? ['ok', 'Approved'] : s ? ['bad', 'Returned'] : ['new', 'New'];
       html += `<a class="mcard${ul ? '' : ' locked'}" href="#${m.id}" ${ul ? '' : 'aria-disabled="true" tabindex="-1"'}>
         <span class="mini-stamp ${st[0]}">${st[1]}</span>
-        <div class="body"><span class="eyebrow">Sheet ${String(m.n).padStart(2, '0')} / 07</span><h3>${esc(m.title)}</h3><p>${esc(m.short)}</p></div>
+        <div class="body"><span class="eyebrow">Sheet ${String(m.n).padStart(2, '0')} / ${TOTAL}</span><h3>${esc(m.title)}</h3><p>${esc(m.short)}</p></div>
         ${titleBlock([['Task', m.items], ['Best', s ? `${s.best} / ${m.max}` : '—'], ['Clauses', m.clauses]])}</a>`;
     }
     html += `</div></section>`;
@@ -683,12 +777,12 @@ function viewMission(m) {
   }
   const s = S.scores[m.id];
   V.innerHTML = `<div class="stack"><section class="sheet"><div class="sheet-in">
-    <div class="mhead"><a class="back" href="#home">← All sheets</a><span class="eyebrow">Sheet ${String(m.n).padStart(2, '0')} / 07 · ${LEVELS[m.lvl][1]}</span><h1>${esc(m.title)}</h1></div>
+    <div class="mhead"><a class="back" href="#home">← All sheets</a><span class="eyebrow">Sheet ${String(m.n).padStart(2, '0')} / ${TOTAL} · ${LEVELS[m.lvl][1]}</span><h1>${esc(m.title)}</h1></div>
     <div class="memo"><span class="eyebrow">Nuria</span><p>${esc(m.note)}</p></div>
     <div class="chips" aria-label="Glossary terms for this sheet"><span class="eyebrow" style="align-self:center">Glossary:</span>${m.terms.map(t => `<button class="chip" data-term="${esc(t)}">${esc(t)}</button>`).join('')}</div>
     <div id="task"></div>
     <div id="result"></div>
-  </div>${titleBlock([['Sheet', `${String(m.n).padStart(2, '0')} / 07`], ['Standard', `ISO 129-1 · ${m.clauses}`], ['Best', s ? `${s.best} / ${m.max}` : 'Not yet'], ['Checked by', 'Nuria']])}</section></div>`;
+  </div>${titleBlock([['Sheet', `${String(m.n).padStart(2, '0')} / ${TOTAL}`], ['Standard', `ISO 129-1 · ${m.clauses}`], ['Best', s ? `${s.best} / ${m.max}` : 'Not yet'], ['Checked by', 'Nuria']])}</section></div>`;
   $$('.chip[data-term]').forEach(b => b.onclick = () => { G.q = b.dataset.term; G.cat = 'All'; location.hash = 'glossary'; });
   m.run($('#task'), m);
 }
@@ -893,6 +987,56 @@ function runErrors(el, m) {
   $('#giveup', el).onclick = () => { if (!pending) end(); };
 }
 
+/* ---------- M7: arrangements ---------- */
+function runArrangements(el, m) {
+  const order = shuffle(ARR_TYPES);
+  const numQ = (q, id) => `<li class="nq"><label for="${id}">${esc(q.q)}</label><input id="${id}" inputmode="numeric" maxlength="4"><span class="fb"></span></li>`;
+  el.innerHTML = `<h2>1 · Name the method</h2><p class="muted">The same plate, dimensioned in four ways. Choose the method each drawing uses.</p>
+    <div class="minis">${order.map((t, i) => `<div class="mini" data-id="${t}"><div class="drawing">${ARR_D[t]()}</div><div class="foot"><span class="eyebrow">Drawing ${i + 1}</span><select id="ar${i}" aria-label="Method for drawing ${i + 1}"><option value="">Method…</option>${ARR_TYPES.map(x => `<option>${x}</option>`).join('')}</select></div><div class="fb"></div></div>`).join('')}</div>
+    <h2>2 · Read the coordinate table</h2><p class="muted">Coordinate dimensioning uses no dimension lines. Each position is measured from the origin (bottom left). Values in mm.</p>
+    <div class="coord"><div class="drawing">${coordSVG()}</div>
+    <div class="tbl"><table><thead><tr><th>Position</th><th>X</th><th>Y</th><th>d</th></tr></thead><tbody>${COORD.map(r => `<tr>${r.map(c => `<td class="mono">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>
+    <ol class="nqs">${COORD_Q.map((q, i) => numQ(q, 'cq' + i)).join('')}</ol>
+    <h2>3 · Read running dimensions</h2><p class="muted">All the values start from the origin symbol, the small circle on the left.</p>
+    <div class="drawing narrow">${runSVG()}</div>
+    <ol class="nqs" start="5">${RUN_Q.map((q, i) => numQ(q, 'rq' + i)).join('')}</ol>
+    <div class="actions"><button class="btn primary" id="check">Send to the workshop</button></div>`;
+  $('#check', el).onclick = () => {
+    let c = 0;
+    $$('.mini', el).forEach(d => {
+      const s = $('select', d), id = d.dataset.id, right = s.value === id;
+      if (right) c++;
+      d.classList.add(right ? 'ok' : 'bad'); s.disabled = true;
+      $('.fb', d).innerHTML = right ? `<span class="ok-t">Correct (${ARR_CLAUSE[id]})</span>` : `<span class="bad-t">It is ${id} (${ARR_CLAUSE[id]})</span>`;
+    });
+    [...COORD_Q.map((q, i) => [q, 'cq' + i]), ...RUN_Q.map((q, i) => [q, 'rq' + i])].forEach(([q, id]) => {
+      const inp = $('#' + id, el), li = inp.closest('li'), right = +inp.value.trim().replace(',', '.') === q.a && inp.value.trim() !== '';
+      if (right) c++;
+      li.classList.add(right ? 'ok' : 'bad'); inp.disabled = true;
+      $('.fb', li).innerHTML = right ? '<span class="ok-t">Correct</span>' : `<span class="bad-t">Answer: ${q.a}. ${esc(q.how)}</span>`;
+    });
+    $('#check', el).disabled = true;
+    finish(m, c * 10);
+  };
+}
+
+/* ---------- M8: special cases ---------- */
+function runSpecial(el, m) {
+  runSeq(el, m, SPECIAL, (box, it, add, next, last) => {
+    const opts = shuffle(it.o.map((t, k) => ({ t, ok: k === 0 })));
+    box.innerHTML = `${it.d ? `<div class="drawing narrow">${SPECIAL_D[it.d]()}</div>` : ''}<p class="sentence" style="font-size:1.15rem">${esc(it.q)}</p>
+      <div class="opts col1">${opts.map((o, k) => `<button class="opt" data-k="${k}">${esc(o.t)}</button>`).join('')}</div><div id="fb"></div>`;
+    $$('.opt', box).forEach(b => b.onclick = () => {
+      const right = opts[+b.dataset.k].ok; add(right);
+      $$('.opt', box).forEach(x => { x.disabled = true; if (opts[+x.dataset.k].ok) x.classList.add('ok'); });
+      if (!right) b.classList.add('bad');
+      $('#fb', box).innerHTML = `<div class="feedback${right ? '' : ' bad'}"><b>${right ? 'Correct.' : 'Not this time.'}</b> ${esc(it.o[0])}. See clause <span class="mono">${it.cl}</span>.</div>
+        <div class="actions" style="margin-top:12px"><button class="btn primary" id="nx">${last ? 'See result' : 'Next'}</button></div>`;
+      $('#nx', box).onclick = next; $('#nx', box).focus();
+    });
+  });
+}
+
 /* ---------- Final: escape ---------- */
 function runEscape(el, m) {
   const open = LOCKS.map(() => false); let tries = 0;
@@ -1037,7 +1181,7 @@ function viewCert() {
     $('#cbox').innerHTML = n ? `<div class="cert"><div class="inner">
       <span class="eyebrow">Studio 129 · Certificate of completion</span>
       <p>This certifies that</p><div class="name">${esc(n)}</div>
-      <p style="max-width:56ch">has completed all seven sheets on dimensioning technical drawings in English according to <b>ISO 129-1:2018</b>, and has opened the locked workshop.</p>
+      <p style="max-width:56ch">has completed all ${MISSIONS.length} sheets on dimensioning technical drawings in English according to <b>ISO 129-1:2018</b>, and has opened the locked workshop.</p>
       <div class="tally"><span>Rank: <b>${r.name}</b></span><span>XP: <b>${v} / ${MAXXP}</b></span><span>Badges: <b>${S.badges.length} / ${BADGES.length}</b></span></div>
       <span class="code" id="ccode">${code(n, v)}</span>
       <div class="actions"><button class="btn primary" id="copy">Copy for PoliformaT</button><span id="copied" class="muted" aria-live="polite"></span></div>
