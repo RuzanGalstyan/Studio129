@@ -295,6 +295,8 @@ mark{background:color-mix(in srgb,var(--xp) 35%,transparent);color:inherit}
 .nq .fb{display:block;font-size:.88rem;margin-top:4px}
 
 .foot .credit{color:var(--ink);font-size:.9rem}
+.byline{font-family:var(--mono);font-size:.8rem;color:var(--muted);letter-spacing:.02em}
+.byline b{color:var(--accent);font-weight:600}
 </style>
 </head>
 <body>
@@ -738,6 +740,7 @@ function viewHome() {
     <div class="lead">
       <span class="eyebrow">Technical English · ISO 129-1:2018 · Dimensions and tolerances</span>
       <h1>Welcome to Studio&nbsp;129</h1>
+      <p class="byline">Created by <b>${esc(AUTHOR)}</b> · ${esc(AUTHOR_PLACE)}</p>
       <p>You are a new junior designer at a small product design studio. Every drawing you make goes to the workshop before anything is manufactured, and the workshop follows <b>ISO 129-1</b>, the international standard for showing dimensions on technical drawings.</p>
       <div class="memo"><span class="eyebrow">Note from Nuria, workshop manager</span><p>If a drawing breaks the standard, I send it back. Get through all ${MISSIONS.length} sheets, open my workshop and you will get your certificate.</p></div>
       <div class="actions"><a class="btn primary" href="#${nextM.id}">${started ? 'Continue' : 'Start'}: ${esc(nextM.title)}</a><a class="btn" href="#briefing">Read the briefing</a></div>
