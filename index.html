@@ -293,6 +293,8 @@ mark{background:color-mix(in srgb,var(--xp) 35%,transparent);color:inherit}
 .nq.ok input{border-color:var(--ok);background:var(--ok-soft)}
 .nq.bad input{border-color:var(--bad);background:var(--bad-soft)}
 .nq .fb{display:block;font-size:.88rem;margin-top:4px}
+
+.foot .credit{color:var(--ink);font-size:.9rem}
 </style>
 </head>
 <body>
@@ -312,6 +314,10 @@ mark{background:color-mix(in srgb,var(--xp) 35%,transparent);color:inherit}
 
 /* Set this to the UPV Library page for AENORmás so students can open the full standard. */
 const LIBRARY_URL = '';
+
+/* Credit shown at the bottom of the home page and on the certificate */
+const AUTHOR = 'Ruzan Galstyan Sargsyan';
+const AUTHOR_PLACE = 'Escuela Politécnica Superior de Alcoi, Universitat Politècnica de València';
 
 const SYM = {
   dia: '<svg viewBox="0 0 24 24" class="sym" aria-hidden="true"><circle cx="12" cy="12" r="7"/><line x1="5" y1="19" x2="19" y2="5"/></svg>',
@@ -758,7 +764,7 @@ function viewHome() {
   html += `<section class="level"><div class="level-head"><span class="eyebrow">${S.badges.length} of ${BADGES.length}</span><h2>Badges</h2></div><div class="badges">${BADGES.map(badgeHTML).join('')}</div></section>
   <section class="level"><div class="level-head"><span class="eyebrow">After the missions</span><h2>Your own product</h2></div>
     <p style="max-width:65ch">The final task is to dimension a simple object from your own design project and justify your choices in English. <a href="#final">Read the brief</a>. When you open the workshop you can also collect your <a href="#cert">certificate</a>.</p></section>
-  <div class="foot"><p>Studio 129 uses short paraphrases of ISO 129-1:2018 (UNE-EN ISO 129-1:2019) for teaching. All drawings are original. Read the full standard through the UPV Library${LIBRARY_URL ? ` (<a href="${LIBRARY_URL}" target="_blank" rel="noopener">open AENORmás</a>)` : ' (AENORmás)'}.</p>
+  <div class="foot"><p class="credit">Created by <b>${esc(AUTHOR)}</b> · ${esc(AUTHOR_PLACE)}</p><p>Studio 129 uses short paraphrases of ISO 129-1:2018 (UNE-EN ISO 129-1:2019) for teaching. All drawings are original. Read the full standard through the UPV Library${LIBRARY_URL ? ` (<a href="${LIBRARY_URL}" target="_blank" rel="noopener">open AENORmás</a>)` : ' (AENORmás)'}.</p>
   <p>Your progress is saved in this browser only. <span id="resetwrap"><button class="linkbtn" id="reset">Reset my progress</button></span></p></div>`;
   V.innerHTML = `<div class="stack">${html}</div>`;
   $('#reset').onclick = () => {
@@ -1183,6 +1189,7 @@ function viewCert() {
       <p>This certifies that</p><div class="name">${esc(n)}</div>
       <p style="max-width:56ch">has completed all ${MISSIONS.length} sheets on dimensioning technical drawings in English according to <b>ISO 129-1:2018</b>, and has opened the locked workshop.</p>
       <div class="tally"><span>Rank: <b>${r.name}</b></span><span>XP: <b>${v} / ${MAXXP}</b></span><span>Badges: <b>${S.badges.length} / ${BADGES.length}</b></span></div>
+      <p class="muted" style="font-size:.85rem">Studio 129 · created by ${esc(AUTHOR)}, ${esc(AUTHOR_PLACE)}</p>
       <span class="code" id="ccode">${code(n, v)}</span>
       <div class="actions"><button class="btn primary" id="copy">Copy for PoliformaT</button><span id="copied" class="muted" aria-live="polite"></span></div>
     </div></div>` : '';
